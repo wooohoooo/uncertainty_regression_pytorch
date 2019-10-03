@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from torch.autograd import Variable
 from tqdm import tqdm, trange
+from pathlib import Path
+
 N = 100
 
 
@@ -64,7 +66,98 @@ class SimpleModel(torch.nn.Module):
         loss.backward()
         self.optimizer.step()
         return loss
+
     
+class SaverModel(SimpleModel):
+    def __init__(self,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'test/',n_models_to_keep=10):
+        super(SaverModel, self).__init__(p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU)
+        self.num_epochs_per_save = num_epochs_per_save
+        self.current_epoch = 0
+        
+        #make sure save path exists
+        path = Path().absolute()/save_path
+        path.mkdir(exist_ok=True)
+        self.save_path = path
+        self.n_models_to_keep = n_models_to_keep
+
+        self.model_paths = []
+        
+        
+        
+    def fit_model(self, X_obs,y_obs):
+        """saves model each X iterations, stores path in model_paths"""
+        
+        y = Variable(torch.Tensor(y_obs[:, np.newaxis]), requires_grad=False)
+        y_pred = self(X_obs[:, np.newaxis])
+        self.optimizer.zero_grad()
+        loss = self.criterion(y_pred, y)
+        loss.backward()
+        self.optimizer.step()
+
+        #if epoch number is multiple of nsave epochs
+        if self.current_epoch % self.num_epochs_per_save == 0:
+            #create epoch path
+            epoch_path = self.save_path/f"epoch{self.current_epoch}"
+            
+            #save model
+            torch.save(self.state_dict(),epoch_path)
+            
+            #append to model_path_list if less than n_models_to_keep models, else replace
+            self.model_paths.append(epoch_path)
+            #if len(self.model_paths) > self.n_models_to_keep:
+            #    self.model_paths.pop(0)
+
+                
+  
+        
+        #increment current epoch
+        self.current_epoch +=1
+        return loss
+    
+    def load_saved_model(self,path):
+        self.load_state_dict(torch.load(path))
+
+        
+    def uncertainty_function(self,X, iters, l2, range_fn=trange,raw_var=False):
+        return self.ensemble_uncertainity_estimate(X=X, iters=iters, l2=l2, range_fn=trange)
+    
+    def weighted_avg_and_std(self,values, weights):
+        """
+        Return the weighted average and standard deviation.
+
+        values, weights -- Numpy ndarrays with the same shape.
+        https://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy
+        """
+        average = np.average(values, axis=1, weights=weights)
+        # Fast and numerically precise:
+        variance = np.average((values-average)**2,axis=1, weights=weights)
+        return (average, np.sqrt(variance))
+
+    def ensemble_uncertainity_estimate(self,X, iters, l2=0.005, range_fn=trange):
+        outputs = []
+        weights = []
+        
+        for i,path in enumerate(self.model_paths):
+            self.load_saved_model(path)
+            outputs.append(self(X[:, np.newaxis]).data.numpy())
+            weights.append(i)
+            
+        
+        outputs = np.hstack(outputs)
+        
+        
+        
+        
+        #y_mean = np.average(outputs, axis=1,weights = weights )
+        #y_variance = outputs.var(axis=1)
+        
+        y_mean, y_variance = self.weighted_avg_and_std(outputs, weights)
+        #tau = l2 * (1-self.dropout_p) / (2*N*self.decay)
+        #y_variance += (1/tau)
+        y_std = np.sqrt(y_variance)# + (1/tau)
+        return y_mean, y_std
+            
+           
     
 class GPUModel(torch.nn.Module):
     def __init__(self,p=0.05, decay=0.001, non_linearity=torch.nn.LeakyReLU):
