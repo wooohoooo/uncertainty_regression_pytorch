@@ -61,13 +61,14 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
 
 
     fig, ax = plt.subplots(1,1)
+    index = np.argsort(X.squeeze())
 
 
     if all_predictions:
         y_mean, y_std, outputs = model.uncertainty_function(X, iters, l2=l2,all_predictions=all_predictions)
         print(outputs.shape)
         for i,prediction in enumerate(outputs.T):
-            ax.plot(X,prediction,alpha=0.3)
+            ax.plot(X[index],prediction[index],alpha=0.3)
             
     else:
         if raw:
@@ -80,16 +81,16 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
                 #y_mean, y_std = model.uncertainty_function(X_long, iters, l2=l2)
                 y_mean, y_std = model.uncertainty_function(X, iters, l2=l2)
 
-    ax.plot(X, y, ls="none", marker="x", color="black", alpha=0.5, label="observed")
+    ax.plot(X[index], y[index], ls="none", marker="x", color="black", alpha=0.5, label="observed")
     #ax.plot(X_long, y_long, ls="-", color="r", label="true")
-    ax.plot(X, y_mean, ls="-", color="purple", label="mean")
+    ax.plot(X[index], y_mean[index], ls="-", color="purple", label="mean",marker='X')
 
 
     for i in range(n_std):
         ax.fill_between(
-            X.squeeze(),
-            y_mean.squeeze() - y_std.squeeze() * ((i+1)/2),
-            y_mean.squeeze() + y_std.squeeze() * ((i+1)/2),
+            X[index].squeeze(),
+            y_mean[index].squeeze() - y_std[index].squeeze() * ((i+1)/2),
+            y_mean[index].squeeze() + y_std[index].squeeze() * ((i+1)/2),
             color="purple",
             alpha=0.1
         )

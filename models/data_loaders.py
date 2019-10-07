@@ -4,6 +4,7 @@ from scipy import stats
 import numpy as np
 import matplotlib.pyplot as plt
 
+from sklearn.model_selection import train_test_split
 
 def load_data(scale_y = True):
     """loads kaggle housing price dataset
@@ -94,7 +95,7 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
 
 
 
-def get_X_y(toy):
+def get_X_y(toy,seed=42):
     """obtain X, y and N depending on <toy>
     either calls generate_data_
     or load_data"""
@@ -109,8 +110,9 @@ def get_X_y(toy):
 
 
         y = np.expand_dims(y,1)
-        return X,y, N
-    
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+        output_dims = X_train.shape[1]
+        return X_train, X_test, y_train, y_test, N, output_dims
     N = 100
     X,y,X_long,y_long = generate_data(N,0.3)
     plt.plot(X,y,'x',label='observed values',c='black')
@@ -119,4 +121,7 @@ def get_X_y(toy):
     plt.xlabel('this is between 0 and 1')
     plt.ylabel('this is a combination of two sioids and a bit of noise')
     plt.legend()
-    return X,y, N
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+    output_dims = X_train.shape[1]
+    return X_train, X_test, y_train, y_test, N, output_dims
