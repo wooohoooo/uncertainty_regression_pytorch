@@ -11,12 +11,12 @@ class SimpleModel(torch.nn.Module):
         if toy:
             self.f = torch.nn.Sequential(
                 torch.nn.Linear(n_dims_input,20),
-                torch.nn.ReLU(),
-                #torch.nn.Dropout(p=self.dropout_p),
+                non_linearity(),
                 torch.nn.Linear(20,20),
-                torch.nn.ReLU(),
-                #torch.nn.Dropout(p=self.dropout_p),
+                non_linearity(),
                 torch.nn.Linear(20, 10),
+                non_linearity(),
+                torch.nn.Linear(10, 10),
                 non_linearity(),
                 torch.nn.Dropout(p=self.dropout_p),
                 torch.nn.Linear(10,1)
@@ -25,10 +25,8 @@ class SimpleModel(torch.nn.Module):
             self.f = torch.nn.Sequential(
                 torch.nn.Linear(n_dims_input,100),
                 non_linearity(),
-                #torch.nn.Dropout(p=self.dropout_p),
                 torch.nn.Linear(100,50),
                 non_linearity(),            
-                #torch.nn.Dropout(p=self.dropout_p),
                 torch.nn.Linear(50, 50),
                 non_linearity(),
                 torch.nn.Dropout(p=self.dropout_p),

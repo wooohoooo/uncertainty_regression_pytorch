@@ -34,10 +34,6 @@ class VanillaEnsemble(object):
     def ensemble_uncertainity_estimate(self,X, iters, l2=0.005, range_fn=trange, all_predictions = True):
         outputs = np.hstack([model(X).data.numpy() for model in self.models])
         y_mean = outputs.mean(axis=1)
-        y_variance = outputs.var(axis=1)
-        #tau = l2 * (1-self.dropout_p) / (2*N*self.decay)
-        #y_variance += (1/tau)
-        #y_std = np.sqrt(y_variance)# + (1/tau)
         y_std = outputs.std(axis=1)
         if all_predictions:
             return y_mean, y_std, outputs

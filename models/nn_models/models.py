@@ -102,7 +102,7 @@ class SaverModel(SimpleModel):
         
 class BobstrapEnsemble(SaverModel):
     def __init__(self,toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytestbob/',n_models_to_keep=10,bootstrap_p_positive=0.7):
-        super(BobstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'test/',n_models_to_keep=20)
+        super(BobstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=num_epochs_per_save,save_path = 'test/',n_models_to_keep=n_models_to_keep)
         
         
         self.current_dataset_indices = None
