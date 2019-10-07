@@ -98,7 +98,8 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
 def get_X_y(toy,seed=42):
     """obtain X, y and N depending on <toy>
     either calls generate_data_
-    or load_data"""
+    or load_data
+    generates cross validation samples"""
     if not toy:
         X,y = load_data()
         N = X.shape[0]
