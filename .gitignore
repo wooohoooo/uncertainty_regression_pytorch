@@ -126,3 +126,4 @@ dmypy.json
 #test folders
 models/dummytest
 models/test
+models/testbob
