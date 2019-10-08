@@ -54,9 +54,11 @@ def plot_uncertainty_kaggle(model,X,y,n_std=4,raw=False, sort=True,iters=100):
     sns.despine(offset=10)
     
     
-    print(compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
-    print(compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
-    print(compute_error(y.squeeze(),y_mean.squeeze()))
+    print(f'cobeau: {compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}')
+    print(f'nlpd: {compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}.\n nlpds of just mean and just std of the model:')
+    print(compute_nlpd(y.squeeze(),y.squeeze().mean(), y.squeeze().std())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
+    print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
+    print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
     
 def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=100):
 
@@ -116,12 +118,11 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
     ax.legend()
     sns.despine(offset=10)
     
-    print(compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
-    print(compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
+    print(f'cobeau: {compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}')
+    print(f'nlpd: {compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}.\n nlpds of just mean and just std of the model:')
     print(compute_nlpd(y.squeeze(),y.squeeze().mean(), y.squeeze().std())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
     print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
-    print(compute_error(y.squeeze(),y_mean.squeeze()))
-
+    print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
     
 def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_predictions=True,generating_function=False):
     """decide which plot function is appropriate"""
@@ -169,10 +170,10 @@ def plot_generating_function(X,y,generating_function,noise_level,N):
 
 
     
-    print(compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
-    print(compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze()))
+    print(f'cobeau: {compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}')
+    print(f'nlpd: {compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}.\n nlpds of just mean and just std of the model:')
     print(compute_nlpd(y.squeeze(),y.squeeze().mean(), y.squeeze().std())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
     print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
-    print(compute_error(y.squeeze(),y_mean.squeeze()))
+    print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
 
     
