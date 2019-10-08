@@ -21,7 +21,7 @@ def load_data(scale_y = True):
 
     #df
     
-    print(df.shape)
+    #print(df.shape)
     
     y = df['SalePrice']
     X = df.drop('SalePrice',axis=1)
@@ -43,7 +43,26 @@ def load_data(scale_y = True):
     return X.values,y.values
 
 
-def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample = True) -> np.array:
+    
+# the function that generates y
+def generate_y(X_):
+    """nonlinear case"""
+        
+        
+    # define the frequencies of the sinoid
+    freq1 = 0.1
+    freq2 = 0.0375
+    
+    X_ = X_ * 200
+    y1 = np.sin(X_ * freq1) 
+    y2 = np.sin(X_ * freq2) 
+    return y1 + y2
+    
+def generate_y_linear(X_):
+        """linear case"""
+        return X_
+
+def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample = True, generator_function = generate_y) -> np.array:
     """returns numpy arrays X and y that can be used as basis for regression problem"""
     
     padding_size = int(padding_frac * datalen)
@@ -61,30 +80,16 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
         X = np.insert(X,0,X_long[0])
         X = np.append(X,X_long[-1])
 
-    # define the frequencies of the sinoid
-    freq1 = 0.1
-    freq2 = 0.0375
-    
+
     # make some noise!
     noise = np.random.randn(len(X)) * noise_level
-    
-    # the function that generates y
-    def generate_y(X_):
-        """nonlinear case"""
-        X_ = X_ * 200
-        y1 = np.sin(X_ * freq1) 
-        y2 = np.sin(X_ * freq2) 
-        return y1 + y2
-    
-    def generate_y_linear(X_):
-        """linear case"""
-        return X_
+
     
     # the original function values
-    y_long = generate_y(X_long)
+    y_long = generator_function(X_long)
     
     # it all comes together: generated function plus noise
-    y = generate_y(X) + noise
+    y = generator_function(X) + noise
     X = np.expand_dims(X,1)
     X_long = np.expand_dims(X_long,1)
     

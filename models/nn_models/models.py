@@ -154,8 +154,8 @@ class DropoutModel(SimpleModel):
         outputs = np.hstack([self(X).data.numpy() for i in range_fn(iters)])
         y_mean = outputs.mean(axis=1)
         y_std = outputs.std(axis=1)
-        print(y_std.shape)
-        print(f"var before returning: {y_std}")
+        #print(y_std.shape)
+        #print(f"var before returning: {y_std}")
 
         if all_predictions:
             return y_mean, y_std, outputs
@@ -170,7 +170,7 @@ class DropoutModel(SimpleModel):
             
 
         
-        print(f"var before returning but not raw anymore: {y_std}")
+        #p#rint(f"var before returning but not raw anymore: {y_std}")
         
         #y_std = np.ones(y_std.shape)
 
