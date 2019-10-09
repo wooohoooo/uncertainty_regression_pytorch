@@ -107,7 +107,9 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
         print(f' this many models: {outputs.shape}')
         for i,prediction in enumerate(outputs.T):
             #print(prediction)
-            ax.plot(X_original,prediction,alpha = 0.3,c='gray')
+            if i == 0:
+                ax.plot(X_original,prediction,alpha = 0.2,c='grey',label='ensemble member prediction')
+            ax.plot(X_original,prediction,alpha = 0.2,c='grey')
     else:
         y_original_mean, y_original_std = model.uncertainty_function(X_original, iters, l2=l2)
 

@@ -154,28 +154,13 @@ class DropoutModel(SimpleModel):
         outputs = np.hstack([self(X).data.numpy() for i in range_fn(iters)])
         y_mean = outputs.mean(axis=1)
         y_std = outputs.std(axis=1)
-        #print(y_std.shape)
-        #print(f"var before returning: {y_std}")
+
 
         if all_predictions:
             return y_mean, y_std, outputs
 
         return y_mean, y_std
         
-        if not raw:
-            pass
-            #tau = l2 * (1-self.dropout_p) / (2*N*self.decay)
-            #y_std += (1/tau)
-            #y_std = np.sqrt(y_std) #+ (1/tau)
-            
-
-        
-        #p#rint(f"var before returning but not raw anymore: {y_std}")
-        
-        #y_std = np.ones(y_std.shape)
-
-        return y_mean, y_std
-
     
     def uncertainty_function(self,X, iters, l2, range_fn=trange,raw=False,all_predictions=False):
         return self.ensemble_uncertainity_estimate(X, iters=iters, l2=l2, range_fn=trange,raw=raw,all_predictions=all_predictions)
