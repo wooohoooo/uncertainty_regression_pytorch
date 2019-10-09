@@ -135,6 +135,11 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
     print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
     print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
     
+    
+    
+    
+    
+    
 def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_predictions=True,generating_function=False):
     """decide which plot function is appropriate"""
     
@@ -148,8 +153,46 @@ def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_pred
         else:
             plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions)
         
- 
 
+        
+        
+        
+        
+def plot_mean_std(X_train,y_train,X_test,y_test, generating_function, N):
+    """helper function to plot and evaluate simply taking mean and std of target variable"""
+    
+
+    fig, ax = plt.subplots(1,1)
+
+    
+    X_original = np.linspace(0,1,N)
+    y_original = generating_function(X_original)
+    ax.plot(X_original, y_original, ls="-", color="r", label="true")
+
+    predictive_mean = np.ones(X_original.shape) * np.mean(y_train.squeeze())
+    predictive_uncertainty = np.ones(X_original.shape) *np.std(y_train.squeeze())
+    
+    
+    ax.plot(X_original, predictive_mean, 'X')
+    for i in range(n_std):
+        ax.fill_between(
+            X_original.squeeze(),
+            predictive_mean.squeeze() - predictive_uncertainty.squeeze() * ((i+1)/2),
+            predictive_mean.squeeze() + predictive_uncertainty.squeeze() * ((i+1)/2),
+            color="purple",
+            alpha=0.1
+        )
+    
+
+
+    
+#     print(f'cobeau: {compute_cobeau(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}')
+#     print(f'nlpd: {compute_nlpd(y.squeeze(),y_mean.squeeze(),y_std.squeeze())}.\n nlpds of just mean and just std of the model:')
+#     print(compute_nlpd(y.squeeze(),y.squeeze().mean(), y.squeeze().std())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
+#     print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
+#     print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
+
+    
     
     
 def plot_generating_function(X,y,generating_function,noise_level,N):
