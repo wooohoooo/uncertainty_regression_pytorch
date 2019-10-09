@@ -1,40 +1,68 @@
 import torch
 
+
+
+
+
+def get_toy_model(n_dims_input, non_linearity,dropout_p):
+    
+    
+    #original
+#     return torch.nn.Sequential(
+#                     torch.nn.Linear(n_dims_input,20),
+#                     non_linearity(),
+#                     torch.nn.Linear(20,20),
+#                     non_linearity(),
+#                     torch.nn.Linear(20, 10),
+#                     non_linearity(),
+#                     torch.nn.Linear(10, 10),
+#                     non_linearity(),
+#                     torch.nn.Dropout(p=self.dropout_p),
+#                     torch.nn.Linear(10,1)
+#                 )
+    
+    #gridsearched
+    return torch.nn.Sequential(
+                    torch.nn.Linear(n_dims_input,20),
+                    non_linearity(),
+                    torch.nn.Linear(20,50),
+                    non_linearity(),
+                    torch.nn.Linear(50, 5),
+                    non_linearity(),
+                    torch.nn.Linear(5, 10),
+                    non_linearity(),
+                    torch.nn.Dropout(p=dropout_p),
+                    torch.nn.Linear(10,1)
+                )
+
+
 class SimpleModel(torch.nn.Module):
     """base NN model used in ensembles"""
-    def __init__(self,toy,n_dims_input,p=0.05, decay=0.001, non_linearity=torch.nn.LeakyReLU):
+    def __init__(self,toy,n_dims_input,p=0.05, decay=0.005, non_linearity=torch.nn.LeakyReLU,model_provided = False):
         super(SimpleModel, self).__init__()
         self.dropout_p = p
         self.decay = decay
         self.criterion = torch.nn.MSELoss()
+        if not model_provided:
+            if toy:
+                self.f = get_toy_model(n_dims_input, non_linearity,self.dropout_p)
 
-        if toy:
-            self.f = torch.nn.Sequential(
-                torch.nn.Linear(n_dims_input,20),
-                non_linearity(),
-                torch.nn.Linear(20,20),
-                non_linearity(),
-                torch.nn.Linear(20, 10),
-                non_linearity(),
-                torch.nn.Linear(10, 10),
-                non_linearity(),
-                torch.nn.Dropout(p=self.dropout_p),
-                torch.nn.Linear(10,1)
-            )
+            else:
+                self.f = torch.nn.Sequential(
+                    torch.nn.Linear(n_dims_input,100),
+                    non_linearity(),
+                    torch.nn.Linear(100,50),
+                    non_linearity(),            
+                    torch.nn.Linear(50, 50),
+                    non_linearity(),
+                    torch.nn.Dropout(p=self.dropout_p),
+                    torch.nn.Linear(50, 15),
+                    non_linearity(),
+                    torch.nn.Dropout(p=self.dropout_p),
+                    torch.nn.Linear(15,1)
+                )
         else:
-            self.f = torch.nn.Sequential(
-                torch.nn.Linear(n_dims_input,100),
-                non_linearity(),
-                torch.nn.Linear(100,50),
-                non_linearity(),            
-                torch.nn.Linear(50, 50),
-                non_linearity(),
-                torch.nn.Dropout(p=self.dropout_p),
-                torch.nn.Linear(50, 15),
-                non_linearity(),
-                torch.nn.Dropout(p=self.dropout_p),
-                torch.nn.Linear(15,1)
-            )
+            self.f = model_provided
 
         self.optimizer = torch.optim.Adam(
             self.parameters(),

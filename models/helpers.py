@@ -8,7 +8,37 @@ import seaborn as sns
 iters = 100
 l2 = 1
 n_std = 4
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
+import IPython
 
+
+
+def showcase_code(pyfile,class_name = False,showcase=False):
+    """shows content of py file"""
+    
+    if showcase:
+
+        with open(pyfile) as f:
+            code = f.read()
+            
+        if class_name:
+            #1. find beginning (class + <name>)
+            index = code.find(f'class {class_name}')
+            code = code[index:]
+            
+            #2. find end (class (new class!) or end of script)
+            end_index = code[7:].find('class')
+            code = code[:end_index]
+            
+            
+
+        formatter = HtmlFormatter()
+        return IPython.display.HTML('<style type="text/css">{}</style>{}'.format(
+            formatter.get_style_defs('.highlight'),
+            highlight(code, PythonLexer(), formatter)))
+    pass
 
 
 def plot_uncertainty_kaggle(model,X,y,n_std=4,raw=False, sort=True,iters=100):
