@@ -68,14 +68,6 @@ def plot_uncertainty_kaggle(model,X,y,n_std=4,raw=False, sort=True,iters=100):
     ax.errorbar(X_, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
     
 
-#     for i in range(n_std):
-#         ax.fill_between(
-#             X_.squeeze(),
-#             y_mean.squeeze() - y_std.squeeze() * ((i+1)/2),
-#             y_mean.squeeze() + y_std.squeeze() * ((i+1)/2),
-#             color="purple",
-#             alpha=0.1
-#         )
 
 
 
@@ -97,40 +89,27 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
     index = np.argsort(X.squeeze())
 
 
-    if all_predictions:
-        y_mean, y_std, outputs = model.uncertainty_function(X, iters, l2=l2,all_predictions=all_predictions)
-        #print(outputs.shape)
-        for i,prediction in enumerate(outputs.T):
-            ax.plot(X[index],prediction[index],alpha=0.3, ls='none', )
+    y_mean, y_std = model.uncertainty_function(X, iters, l2=l2)
+
             
-            
-    else:
-        if raw:
-            try:
-                #y_mean, y_std = model.uncertainty_function(X_long, iters, l2=l2,raw=True)
-                y_mean, y_std = model.uncertainty_function(X, iters, l2=l2,raw=True)
-            except Exception as e:
-                print(f"this network has no raw uncertainty. Please consider using DropoutEnsembles instead, {e}")
-        else:
-                #y_mean, y_std = model.uncertainty_function(X_long, iters, l2=l2)
-                y_mean, y_std = model.uncertainty_function(X, iters, l2=l2)
 
     ax.plot(X[index], y[index], ls="none", marker="x", color="black", alpha=0.5, label="observed")
-    #ax.plot(X_long, y_long, ls="-", color="r", label="true")
     ax.plot(X[index], y_mean[index], ls='none', color="black", label="test set prediction",marker='X')
 
 
-    #for i in range(n_std):
-    #    ax.fill_between(
-    #        X[index].squeeze(),
-    #        y_mean[index].squeeze() - y_std[index].squeeze() * ((i+1)/2),
-    #        y_mean[index].squeeze() + y_std[index].squeeze() * ((i+1)/2),
-    #        color="purple",
-    #        alpha=0.1
-    #    )
+
         
     X_original = np.expand_dims(np.linspace(0,1,100),1)
-    y_original_mean, y_original_std = model.uncertainty_function(X_original, iters, l2=l2)
+    
+    
+    if all_predictions:
+        y_original_mean, y_original_std, outputs = model.uncertainty_function(X_original, iters, l2=l2,all_predictions=all_predictions)
+        print(f' this many models: {outputs.shape}')
+        for i,prediction in enumerate(outputs.T):
+            #print(prediction)
+            ax.plot(X_original,prediction,alpha = 0.3,c='gray')
+    else:
+        y_original_mean, y_original_std = model.uncertainty_function(X_original, iters, l2=l2)
 
     ax.plot(X_original, y_original_mean, ls="-", color="purple", label="mean")
 

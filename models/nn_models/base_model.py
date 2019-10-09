@@ -6,7 +6,6 @@ import torch
 
 def get_toy_model(n_dims_input, non_linearity,dropout_p):
     
-    
     #original
 #     return torch.nn.Sequential(
 #                     torch.nn.Linear(n_dims_input,20),
@@ -35,6 +34,53 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
                     torch.nn.Linear(10,1)
                 )
 
+#     non_linearity = torch.nn.Tanh
+#     return torch.nn.Sequential(
+#                     torch.nn.Linear(n_dims_input,10),
+#                     non_linearity(),
+#                     torch.nn.Linear(10,10),
+#                     non_linearity(),
+#                     torch.nn.Linear(10, 50),
+#                     non_linearity(),
+#                     torch.nn.Dropout(p=dropout_p),
+
+#                     torch.nn.Linear(50, 10),
+#                     non_linearity(),
+#                     torch.nn.Linear(10,1)
+#                 )
+
+def get_kaggle_model(n_dims_input, non_linearity,dropout_p):
+    
+    #original
+#     torch.nn.Sequential(
+#                     torch.nn.Linear(n_dims_input,100),
+#                     non_linearity(),
+#                     torch.nn.Linear(100,50),
+#                     non_linearity(),            
+#                     torch.nn.Linear(50, 50),
+#                     non_linearity(),
+#                     torch.nn.Dropout(p=self.dropout_p),
+#                     torch.nn.Linear(50, 15),
+#                     non_linearity(),
+#                     torch.nn.Dropout(p=self.dropout_p),
+#                     torch.nn.Linear(15,1)
+#                 )
+    non_linearity = torch.nn.Tanh
+    return torch.nn.Sequential(
+                    torch.nn.Linear(n_dims_input,500),
+                    non_linearity(),
+                    torch.nn.Linear(500,500),
+                    non_linearity(),
+                    torch.nn.Linear(500, 15),
+                    non_linearity(),
+                    torch.nn.Dropout(p=dropout_p),
+                    torch.nn.Linear(15,1)
+                )
+
+
+
+
+
 
 class SimpleModel(torch.nn.Module):
     """base NN model used in ensembles"""
@@ -48,19 +94,7 @@ class SimpleModel(torch.nn.Module):
                 self.f = get_toy_model(n_dims_input, non_linearity,self.dropout_p)
 
             else:
-                self.f = torch.nn.Sequential(
-                    torch.nn.Linear(n_dims_input,100),
-                    non_linearity(),
-                    torch.nn.Linear(100,50),
-                    non_linearity(),            
-                    torch.nn.Linear(50, 50),
-                    non_linearity(),
-                    torch.nn.Dropout(p=self.dropout_p),
-                    torch.nn.Linear(50, 15),
-                    non_linearity(),
-                    torch.nn.Dropout(p=self.dropout_p),
-                    torch.nn.Linear(15,1)
-                )
+                self.f = get_kaggle_model(n_dims_input, non_linearity,self.dropout_p)
         else:
             self.f = model_provided
 
