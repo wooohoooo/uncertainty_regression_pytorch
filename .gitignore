@@ -128,3 +128,4 @@ models/dummytest
 models/test
 models/testbob
 models/experiments
+*.pkl
