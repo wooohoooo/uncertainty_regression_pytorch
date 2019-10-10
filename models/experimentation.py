@@ -72,7 +72,12 @@ class Experimentator(object):
                 model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}/')
             except Exception as e:
                 print(e)
-                model = self.model_type(self.toy,self.output_dims)
+                try:
+                    model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0])
+                except Exception as e:
+                    print(e)
+                    model = self.model_type(self.toy,self.output_dims)
+
 
             losslist = []
             try:
