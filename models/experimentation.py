@@ -88,7 +88,10 @@ class Experimentator(object):
                 losslist.append(loss)
 
                 if i == self.num_epochs - 1:
-                    self.stats_dict['training']['final_losses'].append(loss.data.numpy())
+                    try:
+                        self.stats_dict['training']['final_losses'].append(loss.data.numpy())
+                    except:
+                        self.stats_dict['training']['final_losses'].append(loss)
 
             self.stats_dict['training']['losses'].append(losslist)
             plt.plot(losslist)
