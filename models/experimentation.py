@@ -228,5 +228,10 @@ class Experimentator(object):
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
         plt.show()
-
         
+        runtime_metrics = self.stats_dict['training']['training_times']
+
+        sns.distplot(runtime_metrics,label=f'distribution of runtimes',norm_hist =False)
+        plt.legend()
+        plt.show()
+ 
