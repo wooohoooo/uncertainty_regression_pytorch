@@ -18,7 +18,7 @@ from helpers import showcase_code
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import time
 
 iters = 100
 l2 = 1
@@ -45,7 +45,8 @@ class Experimentator(object):
                                       'outcomes':[]
                                       },
                       'training':{'losses':[],
-                                  'final_losses':[]
+                                  'final_losses':[],
+                                  'training_times':[]
                                  },
 
                       'analysis':{'test_errors':[],
@@ -66,8 +67,8 @@ class Experimentator(object):
     def run_experiment(self):
         for i in range(self.num_experiments):
 
-            np.random.seed(self.seed + i)
-            torch.manual_seed(self.seed + i)
+            np.random.seed(self.seed + i*100000)
+            torch.manual_seed(self.seed + i*100000)
             try:
                 model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}/')
             except Exception as e:
@@ -87,7 +88,8 @@ class Experimentator(object):
                 self.stats_dict['pre_training']['outcomes'].append(outcomes)
             except Exception as e:
                 print('pre-training information not available for methods that rely on ensembling through time')
-
+            
+            start = time.time()
             for i in range(self.num_epochs):
                 loss = model.fit_model(self.X_train, self.y_train)
                 losslist.append(loss)
@@ -97,6 +99,10 @@ class Experimentator(object):
                         self.stats_dict['training']['final_losses'].append(loss.data.numpy())
                     except:
                         self.stats_dict['training']['final_losses'].append(loss)
+                        
+            time_now = time.time()
+            self.stats_dict['training']['training_times'].append(time_now-start_time)
+            print(f'the training for {self.num_epochs} took {time_now-start_time} ')
 
             self.stats_dict['training']['losses'].append(losslist)
             plt.plot(losslist)
