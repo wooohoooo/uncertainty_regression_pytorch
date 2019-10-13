@@ -101,8 +101,8 @@ class Experimentator(object):
                         self.stats_dict['training']['final_losses'].append(loss)
                         
             time_now = time.time()
-            self.stats_dict['training']['training_times'].append(time_now-start_time)
-            print(f'the training for {self.num_epochs} took {time_now-start_time} ')
+            self.stats_dict['training']['training_times'].append(time_now-start)
+            print(f'the training for {self.num_epochs} took {time_now-start} ')
 
             self.stats_dict['training']['losses'].append(losslist)
             plt.plot(losslist)
