@@ -121,13 +121,15 @@ def get_X_y(toy,seed=42):
         return X_train, X_test, y_train, y_test, N, output_dims
     N = 100
     X,y,X_long,y_long = generate_data(N,0.3)
-    plt.plot(X,y,'x',label='observed values',c='black')
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+
+    plt.plot(X_train,y_train,'x',label='train set')
+    plt.plot(X_test,y_test,'x',label='test set')
     plt.plot(X_long, y_long,label='generating function',c='r')
     plt.title('the Dataset')
     plt.xlabel('this is between 0 and 1')
     plt.ylabel('this is a combination of two sioids and a bit of noise')
     plt.legend()
     
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
     output_dims = X_train.shape[1]
     return X_train, X_test, y_train, y_test, N, output_dims
