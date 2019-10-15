@@ -72,11 +72,11 @@ class Experimentator(object):
             try:
                 model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}/')
             except Exception as e:
-                print(e)
+                #print(e)
                 try:
                     model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0])
                 except Exception as e:
-                    print(e)
+                    #print(e)
                     model = self.model_type(self.toy,self.output_dims)
 
 
@@ -87,7 +87,8 @@ class Experimentator(object):
                 self.stats_dict['pre_training']['stds'].append(std)
                 self.stats_dict['pre_training']['outcomes'].append(outcomes)
             except Exception as e:
-                print('pre-training information not available for methods that rely on ensembling through time')
+                a= 0
+                #print('pre-training information not available for methods that rely on ensembling through time')
             
             start = time.time()
             for i in range(self.num_epochs):
@@ -102,7 +103,7 @@ class Experimentator(object):
                         
             time_now = time.time()
             self.stats_dict['training']['training_times'].append(time_now-start)
-            print(f'the training for {self.num_epochs} took {time_now-start} ')
+            #print(f'the training for {self.num_epochs} took {time_now-start} ')
 
             self.stats_dict['training']['losses'].append(losslist)
             plt.plot(losslist)
@@ -179,7 +180,7 @@ class ExperimentAnalyzer(object):
         print(np.mean(self.nlpd), np.std(self.nlpd))
     
     def _create_comparisson_values(self):
-        self.y_original = self.generator_function(self.X_test)
+        self.y_original = self.experiment.generator_function(self.X_test)
 
         self.original_function_error = compute_error(self.y_test,self.y_original)
 
