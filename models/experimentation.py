@@ -120,6 +120,14 @@ class Experimentator(object):
             self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
             self.stats_dict['analysis']['nlpd'].append(compute_nlpd(self.y_test.squeeze(),mean.squeeze(),std.squeeze()))  
     
+    
+class ExperimentAnalyzer(object):
+    def __init__(self,experiment: Experimentator):
+        self.experiment = experiment
+        self.stats_dict = experiment.stats_dict
+        self.model_name = experiment.model_name
+        self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
+    
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
