@@ -61,9 +61,19 @@ class Experimentator(object):
                      }
         
         model_string = f'{model_type}'
-        index_start = model_string.find('.models.')+len('.models.')
-        index_stop = model_string.find("'>")
-        self.model_name = model_string[index_start:index_stop]
+        print(model_string)
+        print('.models.' in model_string)
+        if '.models.' in model_string:
+            index_start = model_string.find('.models.')+len('.models.')
+            index_stop = model_string.find("'>")
+            self.model_name = model_string[index_start:index_stop]
+
+        elif '.ensembles.' in model_string:
+            index_start = model_string.find('.ensembles.')+len('.ensembles.')
+            index_stop = model_string.find("'>") 
+            self.model_name = model_string[index_start:index_stop]
+
+        else: self.model_name = 'VanillaEnsemble'
 
         
 
@@ -154,8 +164,8 @@ class ExperimentAnalyzer(object):
         #worst_fig.figsize([16,9]) 
         
         
-        best_fig.savefig('\\sample_models\\'+self.fig_path +'_min_fit')
-        worst_fig.savefig('\\sample_models\\'+self.fig_path +'_max_fit')
+        best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit',bbox_inches='tight', pad_inches=0)
+        worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit',bbox_inches='tight', pad_inches=0)
 
         #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
         #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
@@ -273,9 +283,21 @@ class ExperimentAnalyzer(object):
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
             if self.toy:
                 plt.axvline(self.original_function_error, 0,17,c='green',label=f'perfect model error',linestyle=':')
+            # check if the dict contains pre-training values
+            
+#              self.stats_dict['pre_training']['means'].append(mean)
+#                 self.stats_dict['pre_training']['stds']
+#             if len(self.stats_dict['pre_training']['means') > 0:
+#                 #plt.axvline(compute_error(self,y_test))
+#                                                    pass
             plt.axvline(self.stupid_function_error, 0,17,c='red',label=f'dumb model error',linestyle='--')
             plt.legend()
-            plt.show()
+            #plt.show()
+            plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format=None,
+            transparent=False, bbox_inches=None, pad_inches=0.1,
+            frameon=None, metadata=None)
+
             
 
             
@@ -286,8 +308,12 @@ class ExperimentAnalyzer(object):
             print(e)
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
             plt.legend()
-            plt.show()
-        
+            #plt.show()
+            plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format=None,
+            transparent=False, bbox_inches=None, pad_inches=0.1,
+            frameon=None, metadata=None)
+    
         try:
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
             if self.toy:
@@ -295,28 +321,44 @@ class ExperimentAnalyzer(object):
             plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model nlpd',linestyle='--')
             plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
-            plt.show()
-            
+            #plt.show()
+            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format=None,
+            transparent=False, bbox_inches=None, pad_inches=0.1,
+            frameon=None, metadata=None)
+    
         except Exception as e:
             print('no comparisson possible for nlpd')
             print(e)
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
             plt.legend()
-            plt.show()
+            #plt.show()
 
-
+            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format=None,
+            transparent=False, bbox_inches=None, pad_inches=0.1,
+            frameon=None, metadata=None)
+    
         #data = norm.rvs(5,0.4,size=1000) # you can use a pandas series or a list if you want
         sns.distplot(self.cobeau,label=f'distribution of cobeaus',norm_hist =False)
         #plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model error')
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
-        plt.show()
-        
+        #plt.show()
+        plt.savefig(self.fig_path + 'cobeau', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format=None,
+        transparent=False, bbox_inches=None, pad_inches=0.1,
+        frameon=None, metadata=None)
+    
         runtime_metrics = self.stats_dict['training']['training_times']
 
         sns.distplot(runtime_metrics,label=f'distribution of runtimes',norm_hist =False)
         plt.legend()
-        plt.show()
+        #plt.show()
+        plt.savefig(self.fig_path + 'runtimes', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format=None,
+        transparent=False, bbox_inches=None, pad_inches=0.1,
+        frameon=None, metadata=None)
     
     
     def plot_outlier_models(self):
