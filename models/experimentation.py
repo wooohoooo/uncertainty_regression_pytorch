@@ -19,7 +19,7 @@ from helpers import showcase_code
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
-
+import pandas as pd
 iters = 100
 l2 = 1
 n_std = 4
@@ -116,25 +116,24 @@ class Experimentator(object):
             self.stats_dict['post_training']['stds'].append(std)
             self.stats_dict['post_training']['outcomes'].append(outcomes)
 
-            self.stats_dict['analysis']['test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
-            self.stats_dict['analysis']['cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
-            self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
-            self.stats_dict['analysis']['nlpd'].append(compute_nlpd(self.y_test.squeeze(),mean.squeeze(),std.squeeze()))  
-    
+
     
 class ExperimentAnalyzer(object):
     def __init__(self,experiment: Experimentator):
         self.experiment = experiment
-        self.stats_dict = experiment.stats_dict
+        self.stats_dict = experiment.stats_dict.copy()
         self.model_name = experiment.model_name
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
+        #index of non-outliers to make choosing which experiments to keep easy
+        self.outlier_keep_index = list(range(self.experiment.num_experiments))
     
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
         
-        best_model_index = np.argmin(self.stats_dict['analysis'][metric])
-        worst_model_index = np.argmax(self.stats_dict['analysis'][metric])
+        metric_array = np.array(self.stats_dict['analysis'][metric])
+        best_model_index = np.argmin(metric_array[self.outlier_keep_index])
+        worst_model_index = np.argmax(metric_array[self.outlier_keep_index])
         
         print(best_model_index,worst_model_index)
         
@@ -151,7 +150,7 @@ class ExperimentAnalyzer(object):
     def plot_outcomes(self):
         plt.plot(self.X_test,self.y_test,'x',label='original data')
 
-        for i in range(len(self.stats_dict['post_training']['means'])):
+        for i in range(len(np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index])):
             mean = self.stats_dict['post_training']['means'][i]
             std = self.stats_dict['post_training']['stds'][i]
 
@@ -160,24 +159,62 @@ class ExperimentAnalyzer(object):
             #plt.errorbar(X_test, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
     
     
-    def analysis(self):
+        
+    def get_outlier_indices(self,threshold=1000):
+        
+        assert len(self.stats_dict['analysis']['test_errors']) > 0, 'please run analysis first to get unbiased numbers'
+        self.analysis_dict_no_outliers = {}
+        errors = np.array(self.stats_dict['analysis']['test_errors'])
+        
+        def get_outliers(array, threshold=threshold):
+            zscore = (array - array.mean())/array.std()
+            return np.where(np.abs(zscore) <= threshold)
+        
+        
+        outlier_indices = get_outliers(errors,1)
+        
+        self.outlier_keep_index =  outlier_indices
+    
+    def _analyze(self):
+        
+        #purge previous outcomes
+        self.stats_dict['analysis']['test_errors'] = []
+        self.stats_dict['analysis']['cobeau'] = []
+        self.stats_dict['analysis']['cobeau_p'] = []
+        self.stats_dict['analysis']['nlpd'] = []
+        
+            
+        for mean,std in zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds'])):
+                self.stats_dict['analysis']['test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
+                self.stats_dict['analysis']['cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
+                self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
+                self.stats_dict['analysis']['nlpd'].append(compute_nlpd(self.y_test.squeeze(),mean.squeeze(),std.squeeze()))  
+    
+        
+
+    
+    def analysis(self,return_as_dataframe=True):
+        self._analyze()
         
         #errors
-        self.errors = self.stats_dict['analysis']['test_errors']
+        self.errors = np.array(self.stats_dict['analysis']['test_errors'])[self.outlier_keep_index]
         print(np.mean(self.errors), np.std(self.errors))
 
         #cobeau
-        self.cobeau = self.stats_dict['analysis']['cobeau']
+        self.cobeau = np.array(self.stats_dict['analysis']['cobeau'])[self.outlier_keep_index]
         print(np.mean(self.cobeau), np.std(self.cobeau))
 
         #p - values cobeau
-        self.p_val = self.stats_dict['analysis']['cobeau_p']
+        self.p_val = np.array(self.stats_dict['analysis']['cobeau_p'])[self.outlier_keep_index]
         print(np.mean(self.p_val), np.std(self.p_val))
 
     
         #nlpd
-        self.nlpd = self.stats_dict['analysis']['nlpd']
+        self.nlpd = np.array(self.stats_dict['analysis']['nlpd'])[self.outlier_keep_index]
         print(np.mean(self.nlpd), np.std(self.nlpd))
+        
+        if return_as_dataframe:
+            return pd.DataFrame.from_dict({'nlpd':self.nlpd,'errors':self.errors,'cobeau':self.cobeau,'cobeau_p_vals':self.p_val})
     
     def _create_comparisson_values(self):
         self.y_original = self.experiment.generator_function(self.X_test)
@@ -193,6 +230,7 @@ class ExperimentAnalyzer(object):
 
         self.stupid_function_nlpd = compute_nlpd(self.y_test,self.y_stupid_mean,self.y_stupid_std)
         
+
         
     def plot_distribution_of_metrics(self):
         self.analysis()
@@ -220,6 +258,7 @@ class ExperimentAnalyzer(object):
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
             plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model nlpd',linestyle=':')
             plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model nlpd',linestyle='--')
+            plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
             plt.show()
             

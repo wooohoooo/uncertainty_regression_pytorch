@@ -147,6 +147,30 @@ class BobstrapEnsemble(SaverModel):
         return loss
     
     
+class SnapshotHybridModel(SaverModel):
+    
+    def ensemble_uncertainity_estimate(self,X, iters, l2=0.005, range_fn=trange,all_predictions=False):
+        outputs = []
+        weights = []
+        
+        for i,path in enumerate(self.model_paths):
+            self.load_saved_model(path)
+            outputs.append(self(X).data.numpy())
+            weights.append(i)
+            
+        
+        outputs = np.hstack(outputs)
+        
+        
+        
+        #mean is now imply the last snapsot
+        y_mean = outputs[:,-1]#self.load_saved_model(self.model_paths[-1])(X).data.numpy()        
+        y_variance = outputs.var(axis=1)
+        
+        y_std = np.sqrt(y_variance)# + (1/tau)
+        if all_predictions:
+            return y_mean, y_std, outputs
+        return y_mean, y_std
     
 class DropoutModel(SimpleModel):
 
