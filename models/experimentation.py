@@ -159,8 +159,65 @@ class ExperimentAnalyzer(object):
             #plt.errorbar(X_test, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
     
     
+    
+    
+    def plot_outlier_models(self):
+        iters = 100
+        l2 = 1
+        n_std = 4
+
+
+        print(self.outlier_keep_index)
+        print(self.outlier_keep_index.tolist())
+
+        outlier_index = list(set(list(range(self.experiment.num_experiments))) - set(self.outlier_keep_index.tolist()))
         
-    def get_outlier_indices(self,threshold=1000):
+        print(outlier_index)
+        print(self.outlier_keep_index)
+        
+        print(len(np.array(self.stats_dict['models'])[outlier_index]))
+        num_models = len(outlier_index)
+        fig, axs = plt.subplots(num_models)
+        fig.suptitle('Vertically stacked models removed due to being outliers')
+        fig.set_size_inches(18.5, num_models*5)
+        
+        for i,model in enumerate(np.array(self.stats_dict['models'])[outlier_index]):
+            y_mean, y_std = model.uncertainty_function(self.X_test, iters, l2=l2)
+
+
+            axs[i].plot(self.X_test, y_mean, marker='x',ls='None', color="purple", label="mean")
+            axs[i].plot(self.X_test, self.y_test, marker='x',ls='None', color="red", label="original data")
+
+
+
+
+#             for i in range(n_std):
+#                 ax.fill_between(
+#                     X_original.squeeze(),
+#                     y_original_mean.squeeze() - y_original_std.squeeze() * ((i+1)/2),
+#                     y_original_mean.squeeze() + y_original_std.squeeze() * ((i+1)/2),
+#                     color="purple",
+#                     alpha=0.1
+#                 )
+
+
+            
+
+#             metric_array = np.array(self.stats_dict['analysis'][metric])
+#             best_model_index = np.argmin(metric_array[self.outlier_keep_index])
+#             worst_model_index = np.argmax(metric_array[self.outlier_keep_index])
+
+#             print(best_model_index,worst_model_index)
+
+#             best_model = self.stats_dict['models'][best_model_index]
+#             worst_model = self.stats_dict['models'][worst_model_index]
+
+#             plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+#             plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+#             #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
+#             #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
+        
+    def get_outlier_indices(self,threshold=1.5):
         
         assert len(self.stats_dict['analysis']['test_errors']) > 0, 'please run analysis first to get unbiased numbers'
         self.analysis_dict_no_outliers = {}
@@ -171,9 +228,9 @@ class ExperimentAnalyzer(object):
             return np.where(np.abs(zscore) <= threshold)
         
         
-        outlier_indices = get_outliers(errors,1)
+        outlier_indices = get_outliers(errors,threshold)
         
-        self.outlier_keep_index =  outlier_indices
+        self.outlier_keep_index =  outlier_indices[0]
     
     def _analyze(self):
         
