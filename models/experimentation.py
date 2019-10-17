@@ -134,8 +134,8 @@ class ExperimentAnalyzer(object):
         
         metric_array = np.array(self.stats_dict['analysis'][metric])[self.outlier_keep_index]
         print(len(metric_array))
-        best_model_index = np.argmin(metric_array)
-        worst_model_index = np.argmax(metric_array)
+        best_model_index = (np.abs(metric_array-0)).argmin()
+        worst_model_index =(np.abs(metric_array-0)).argmax()
         
         print(best_model_index,worst_model_index)
         
@@ -144,6 +144,10 @@ class ExperimentAnalyzer(object):
         
         best_fig = plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
         worst_fig = plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+        
+        best_fig.savefig(self.fig_path +'_min_fit')
+        worst_fig.savefig(self.fig_path +'_max_fit')
+
         #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
         #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
         

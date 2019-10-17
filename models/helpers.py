@@ -154,6 +154,8 @@ def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_pred
             fig = plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions,generating_function =generating_function)
         else:
             fig = plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions)
+            
+    return fig
         
 
         
