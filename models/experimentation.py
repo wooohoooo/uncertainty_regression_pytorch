@@ -17,6 +17,9 @@ torch.backends.cudnn.benchmark = False
 from helpers import showcase_code
 
 import matplotlib.pyplot as plt
+plt.rcParams["figure.figsize"] = (16,8)
+
+
 import seaborn as sns
 import time
 import pandas as pd
@@ -144,9 +147,15 @@ class ExperimentAnalyzer(object):
         
         best_fig = plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
         worst_fig = plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+
+        best_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[best_model_index]}')
+        worst_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[worst_model_index]}')
+        #best_fig.figsize([16,9]) 
+        #worst_fig.figsize([16,9]) 
         
-        best_fig.savefig(self.fig_path +'_min_fit')
-        worst_fig.savefig(self.fig_path +'_max_fit')
+        
+        best_fig.savefig('\\sample_models\\'+self.fig_path +'_min_fit')
+        worst_fig.savefig('\\sample_models\\'+self.fig_path +'_max_fit')
 
         #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
         #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
