@@ -311,29 +311,3 @@ class ExperimentAnalyzer(object):
 
 
 
-#             for i in range(n_std):
-#                 ax.fill_between(
-#                     X_original.squeeze(),
-#                     y_original_mean.squeeze() - y_original_std.squeeze() * ((i+1)/2),
-#                     y_original_mean.squeeze() + y_original_std.squeeze() * ((i+1)/2),
-#                     color="purple",
-#                     alpha=0.1
-#                 )
-
-
-            
-
-#             metric_array = np.array(self.stats_dict['analysis'][metric])
-#             best_model_index = np.argmin(metric_array[self.outlier_keep_index])
-#             worst_model_index = np.argmax(metric_array[self.outlier_keep_index])
-
-#             print(best_model_index,worst_model_index)
-
-#             best_model = self.stats_dict['models'][best_model_index]
-#             worst_model = self.stats_dict['models'][worst_model_index]
-
-#             plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
-#             plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
-#             #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
-#             #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
-        
