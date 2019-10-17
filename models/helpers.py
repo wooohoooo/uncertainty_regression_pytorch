@@ -82,6 +82,8 @@ def plot_uncertainty_kaggle(model,X,y,n_std=4,raw=False, sort=True,iters=100):
     print(compute_nlpd(y.squeeze(),y_mean.squeeze(), (y-y_mean).squeeze())) # https://www.mendeley.com/viewer/?fileId=03696e80-bc97-8d5d-1369-9366d576b414&documentId=1725878a-471c-39b9-88e8-b8c7c4d2ff0e p14 evaluating predictive uncertainty challenge
     print(f'error: {compute_error(y.squeeze(),y_mean.squeeze())}')
     
+    return fig
+    
 def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=100):
 
 
@@ -137,7 +139,7 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
     
     
     
-    
+    return fig
     
     
 def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_predictions=True,generating_function=False):
@@ -146,12 +148,12 @@ def plot_uncertainty(model,X,y,toy=False, n_std=4,raw=False, sort=True, all_pred
     
     
     if not toy:
-        plot_uncertainty_kaggle(model,X,y, n_std=4,raw=False, sort=True)
+        fig = plot_uncertainty_kaggle(model,X,y, n_std=4,raw=False, sort=True)
     else:
         if generating_function:
-            plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions,generating_function =generating_function)
+            fig = plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions,generating_function =generating_function)
         else:
-            plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions)
+            fig = plot_uncertainty_toy(model,X,y, n_std=4,raw=False, all_predictions=all_predictions)
         
 
         

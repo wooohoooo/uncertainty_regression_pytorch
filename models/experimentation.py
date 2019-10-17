@@ -126,6 +126,7 @@ class ExperimentAnalyzer(object):
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
+        self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}'
     
     def plot_models(self,metric='test_errors'):
         
@@ -141,23 +142,41 @@ class ExperimentAnalyzer(object):
         best_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][best_model_index]
         worst_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][worst_model_index]
         
-        plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
-        plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+        best_fig = plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
+        worst_fig = plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
         #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
         #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
         
         
         
     def plot_outcomes(self):
-        plt.plot(self.X_test,self.y_test,'x',label='original data')
+        
+        
+        X_ = np.arange(len(self.y_test))
+    
+        if not self.toy:
+            index = np.argsort(self.y_test.squeeze())
+                    #print(index)
+        else: 
+                #just use index [0,1,2,3,4,...]
+                index = X_
+                X_ = self.X_test[index]
+        
+        plt.plot(X_,self.y_test[index],'x',label='original data')
 
         for i in range(len(np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index])):
-            mean = np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index][i]
-            std = np.array(self.stats_dict['post_training']['stds'])[self.outlier_keep_index][i]
+            mean = np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index][i][index]
+            std = np.array(self.stats_dict['post_training']['stds'])[self.outlier_keep_index][i][index]
 
-            plt.plot(self.X_test,np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index][i],'x',alpha = 0.3)
-            plt.errorbar(self.X_test,mean,yerr=std,marker='x',alpha = 0.3,fmt='none')
+            plt.plot(X_,np.array(self.stats_dict['post_training']['means'])[self.outlier_keep_index][i][index],'x',alpha = 0.3)
+            plt.errorbar(X_,mean,yerr=std,marker='x',alpha = 0.3,fmt='none')
             #plt.errorbar(X_test, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
+        plt.legend()
+        
+        plt.savefig(self.fig_path + 'outcome', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format=None,
+        transparent=False, bbox_inches=None, pad_inches=0.1,
+        frameon=None, metadata=None)
     
     
  
@@ -239,7 +258,8 @@ class ExperimentAnalyzer(object):
             self._create_comparisson_values()
             
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
-            plt.axvline(self.original_function_error, 0,17,c='green',label=f'perfect model error',linestyle=':')
+            if self.toy:
+                plt.axvline(self.original_function_error, 0,17,c='green',label=f'perfect model error',linestyle=':')
             plt.axvline(self.stupid_function_error, 0,17,c='red',label=f'dumb model error',linestyle='--')
             plt.legend()
             plt.show()
@@ -257,7 +277,8 @@ class ExperimentAnalyzer(object):
         
         try:
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
-            plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model nlpd',linestyle=':')
+            if self.toy:
+                plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model nlpd',linestyle=':')
             plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model nlpd',linestyle='--')
             plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
