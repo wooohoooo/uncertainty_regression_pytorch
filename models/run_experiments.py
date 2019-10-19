@@ -19,8 +19,9 @@ from experimentation import ExperimentAnalyzer
 import os
 import time
 import pandas as pd
-files = [x for x in os.listdir('pickles') if x.endswith('pkl')]
 
+files = [x for x in os.listdir('pickles') if x.endswith('pkl')]
+df_dict = {}
 
 for file in files:
     with  open('pickles\\'+file, "rb") as f:
@@ -42,24 +43,20 @@ for file in files:
 
     analyzer.plot_distribution_of_metrics()
 
-    time.sleep(1)
     analyzer.plot_models()
-    time.sleep(1)
 
     analyzer.plot_models('cobeau')
-    time.sleep(1)
 
     analyzer.plot_models('nlpd')
-    time.sleep(1)
 
 
-    try:
-        analyzer.plot_outlier_models()
+#     try:
+#         analyzer.plot_outlier_models()
 
 
 
-    except Exception as e:
-        print(e)
+#     except Exception as e:
+#         print(e)
 
 
     

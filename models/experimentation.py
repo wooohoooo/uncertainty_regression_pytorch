@@ -19,7 +19,7 @@ from helpers import showcase_code
 import matplotlib.pyplot as plt
 plt.rcParams["figure.figsize"] = (16,8)
 
-
+import os
 import seaborn as sns
 import time
 import pandas as pd
@@ -35,6 +35,15 @@ class Experimentator(object):
         self.num_epochs = num_epochs
         self.model_type = model_type
         self.seed = seed or 42
+        
+        
+        
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        #NOTE! This only works for non cudnn. gpu needs
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=self.seed)
     
         
@@ -55,7 +64,12 @@ class Experimentator(object):
                       'analysis':{'test_errors':[],
                                   'cobeau':[],
                                   'cobeau_p':[],
-                                  'nlpd':[]
+                                  'nlpd':[],
+                                  'prior_test_errors':[],
+                                  'prior_nlpd':[],
+                                  'prior_cobeau':[],
+                                  'prior_cobeau_p':[]
+                                  
                                  },
                       'models': []
                      }
@@ -83,7 +97,7 @@ class Experimentator(object):
             np.random.seed(self.seed + i*100000)
             torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}/')
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}/')
             except Exception as e:
                 #print(e)
                 try:
@@ -139,8 +153,13 @@ class ExperimentAnalyzer(object):
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
-        self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}'
-    
+        self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+        try:
+            os.makedirs(os.getcwd() + '\\' + self.fig_path )
+        except OSError:
+            print ("Creation of the directory %s failed" % self.fig_path)
+        else:
+            print ("Successfully created the directory %s " % self.fig_path)    
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
@@ -166,6 +185,9 @@ class ExperimentAnalyzer(object):
         
         best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit',bbox_inches='tight', pad_inches=0)
         worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit',bbox_inches='tight', pad_inches=0)
+        plt.close()
+        plt.close()
+        plt.clf()
 
         #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
         #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
@@ -200,7 +222,8 @@ class ExperimentAnalyzer(object):
         orientation='portrait', papertype=None, format=None,
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
-    
+        plt.close()
+
     
  
     def get_outlier_indices(self,threshold=3):
@@ -226,34 +249,66 @@ class ExperimentAnalyzer(object):
         self.stats_dict['analysis']['cobeau_p'] = []
         self.stats_dict['analysis']['nlpd'] = []
         
+        self.stats_dict['analysis']['prior_test_errors'] = []
+        self.stats_dict['analysis']['prior_cobeau'] = []
+        self.stats_dict['analysis']['prior_cobeau_p'] = []
+        self.stats_dict['analysis']['prior_nlpd'] = []
+        
+        
             
         for mean,std in zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds'])):
                 self.stats_dict['analysis']['test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
                 self.stats_dict['analysis']['cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
                 self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
                 self.stats_dict['analysis']['nlpd'].append(compute_nlpd(self.y_test.squeeze(),mean.squeeze(),std.squeeze()))  
-    
-        
+        try:
+            for mean,std in zip(np.array(self.stats_dict['pre_training']['means']), np.array(self.stats_dict['pre_training']['stds'])):
+                    self.stats_dict['analysis']['prior_test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
+                    self.stats_dict['analysis']['prior_cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
+                    self.stats_dict['analysis']['prior_cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
+                    self.stats_dict['analysis']['prior_nlpd'].append(compute_nlpd(self.y_test.squeeze(),mean.squeeze(),std.squeeze()))
+        except:
+            print('model without prior')
+
+
 
     
     def analysis(self,return_as_dataframe=True):
         self._analyze()
-        
+        #print(self.stats_dict['analysis'])
         #errors
         self.errors = np.array(self.stats_dict['analysis']['test_errors'])[self.outlier_keep_index]
+        try:
+            self.prior_errors = np.array(self.stats_dict['analysis']['prior_test_errors'])[self.outlier_keep_index]
+        except:
+            a = 0
         print(np.mean(self.errors), np.std(self.errors))
 
         #cobeau
         self.cobeau = np.array(self.stats_dict['analysis']['cobeau'])[self.outlier_keep_index]
+        try:
+            self.prior_cobeau = np.array(self.stats_dict['analysis']['prior_cobeau'])[self.outlier_keep_index]
+        except:
+            a = 0
+
         print(np.mean(self.cobeau), np.std(self.cobeau))
 
         #p - values cobeau
         self.p_val = np.array(self.stats_dict['analysis']['cobeau_p'])[self.outlier_keep_index]
+        try:
+            self.prior_p_val = np.array(self.stats_dict['analysis']['prior_cobeau_p'])[self.outlier_keep_index]
+        except:
+            a = 0
+
         print(np.mean(self.p_val), np.std(self.p_val))
 
     
         #nlpd
         self.nlpd = np.array(self.stats_dict['analysis']['nlpd'])[self.outlier_keep_index]
+        try:
+            self.prior_nlpd = np.array(self.stats_dict['analysis']['prior_nlpd'])[self.outlier_keep_index]
+        except:
+            a = 0
         print(np.mean(self.nlpd), np.std(self.nlpd))
         
         if return_as_dataframe:
@@ -277,10 +332,16 @@ class ExperimentAnalyzer(object):
         
     def plot_distribution_of_metrics(self):
         self.analysis()
+        plt.figure()
         try:
             self._create_comparisson_values()
             
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
+            try:
+                plt.axvline(np.mean(self.prior_error), 0,17,c='green',label=f'average prior error',linestyle='.')
+            except:
+                a =0
+
             if self.toy:
                 plt.axvline(self.original_function_error, 0,17,c='green',label=f'perfect model error',linestyle=':')
             # check if the dict contains pre-training values
@@ -293,12 +354,13 @@ class ExperimentAnalyzer(object):
             plt.axvline(self.stupid_function_error, 0,17,c='red',label=f'dumb model error',linestyle='--')
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
+            plt.savefig(self.fig_path+ 'errors', dpi=None, facecolor='w', edgecolor='w',
             orientation='portrait', papertype=None, format=None,
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
 
             
+            plt.close()
 
             
 
@@ -307,17 +369,30 @@ class ExperimentAnalyzer(object):
             print('no comparisson possible for error')
             print(e)
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
+            try:
+                plt.axvline(np.mean(self.prior_error), 0,17,c='green',label=f'prior error',linestyle=':')
+            except:
+                a = 0
+
             plt.legend()
             #plt.show()
             plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
             orientation='portrait', papertype=None, format=None,
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
-    
+            plt.close()
+
+            plt.figure()
+
         try:
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
             if self.toy:
                 plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model nlpd',linestyle=':')
+            try:
+                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'average prior nlpd',linestyle='.')
+            except:
+                a = 0
+
             plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model nlpd',linestyle='--')
             plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
@@ -331,17 +406,27 @@ class ExperimentAnalyzer(object):
             print('no comparisson possible for nlpd')
             print(e)
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
-            plt.legend()
             #plt.show()
+            try:
+                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'prior nlpd',linestyle='.')
+            except:
+                a = 0
+            plt.legend()
 
             plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
             orientation='portrait', papertype=None, format=None,
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
-    
+            plt.close()
+
+            plt.figure()
+
         #data = norm.rvs(5,0.4,size=1000) # you can use a pandas series or a list if you want
         sns.distplot(self.cobeau,label=f'distribution of cobeaus',norm_hist =False)
-        #plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model error')
+        try:
+            plt.axvline(np.mean(self.prior_cobeau), 0,17,c='green',label=f'average prior cobeau',linestyle='.')
+        except:
+            a = 0
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
         #plt.show()
@@ -351,6 +436,9 @@ class ExperimentAnalyzer(object):
         frameon=None, metadata=None)
     
         runtime_metrics = self.stats_dict['training']['training_times']
+        plt.close()
+
+        plt.figure()
 
         sns.distplot(runtime_metrics,label=f'distribution of runtimes',norm_hist =False)
         plt.legend()
@@ -359,6 +447,7 @@ class ExperimentAnalyzer(object):
         orientation='portrait', papertype=None, format=None,
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
+        plt.close()
     
     
     def plot_outlier_models(self):
@@ -366,7 +455,17 @@ class ExperimentAnalyzer(object):
         l2 = 1
         n_std = 4
 
-
+        X_ = np.arange(len(self.y_test))
+    
+        if not self.toy:
+            index = np.argsort(self.y_test.squeeze())
+                    #print(index)
+        else: 
+                #just use index [0,1,2,3,4,...]
+                index = X_
+                X_ = self.X_test[index]
+                
+                
         outlier_index = list(set(list(range(self.experiment.num_experiments))) - set(self.outlier_keep_index.tolist()))
         
         num_models = len(outlier_index)
@@ -381,8 +480,8 @@ class ExperimentAnalyzer(object):
             y_mean, y_std = model.uncertainty_function(self.X_test, iters, l2=l2)
 
 
-            axs[i].plot(self.X_test, y_mean, marker='x',ls='None', color="purple", label="mean")
-            axs[i].plot(self.X_test, self.y_test, marker='x',ls='None', color="red", label="original data")
+            axs[i].plot(X_, y_mean[index], marker='x',ls='None', color="purple", label="mean")
+            axs[i].plot(X_, self.y_test[index], marker='x',ls='None', color="red", label="original data")
 
 
 
