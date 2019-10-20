@@ -338,8 +338,9 @@ class ExperimentAnalyzer(object):
             
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
             try:
-                plt.axvline(np.mean(self.prior_error), 0,17,c='green',label=f'average prior error',linestyle='.')
-            except:
+                plt.axvline(np.mean(self.prior_errors), 0,17,c='green',label=f'average prior error',linestyle='-.')
+            except Exception as e:
+                print(e)
                 a =0
 
             if self.toy:
@@ -370,8 +371,9 @@ class ExperimentAnalyzer(object):
             print(e)
             sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
             try:
-                plt.axvline(np.mean(self.prior_error), 0,17,c='green',label=f'prior error',linestyle=':')
-            except:
+                plt.axvline(np.mean(self.prior_errors), 0,17,c='green',label=f'prior error',linestyle=':')
+            except Exception as e:
+                print(e)
                 a = 0
 
             plt.legend()
@@ -389,7 +391,7 @@ class ExperimentAnalyzer(object):
             if self.toy:
                 plt.axvline(self.original_function_nlpd, 0,17,c='green',label=f'perfect model nlpd',linestyle=':')
             try:
-                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'average prior nlpd',linestyle='.')
+                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'average prior nlpd',linestyle='-.')
             except:
                 a = 0
 
@@ -408,7 +410,7 @@ class ExperimentAnalyzer(object):
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
             #plt.show()
             try:
-                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'prior nlpd',linestyle='.')
+                plt.axvline(np.mean(self.prior_nlpd), 0,17,c='green',label=f'prior nlpd',linestyle='-.')
             except:
                 a = 0
             plt.legend()
@@ -419,13 +421,14 @@ class ExperimentAnalyzer(object):
             frameon=None, metadata=None)
             plt.close()
 
-            plt.figure()
+        plt.figure()
 
         #data = norm.rvs(5,0.4,size=1000) # you can use a pandas series or a list if you want
         sns.distplot(self.cobeau,label=f'distribution of cobeaus',norm_hist =False)
         try:
-            plt.axvline(np.mean(self.prior_cobeau), 0,17,c='green',label=f'average prior cobeau',linestyle='.')
-        except:
+            plt.axvline(np.mean(self.prior_cobeau), 0,17,c='green',label=f'average prior cobeau',linestyle='-.')
+        except Exception as e:
+            print(e)
             a = 0
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
