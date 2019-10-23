@@ -5,6 +5,7 @@ import torch
 
 
 def get_toy_model(n_dims_input, non_linearity,dropout_p):
+    """original was 100,100,10; LeakyReLU"""
     
     #original
 #     return torch.nn.Sequential(
@@ -20,36 +21,41 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
 #                     torch.nn.Linear(10,1)
 #                 )
     
-    #gridsearched
-    return torch.nn.Sequential(
-                    torch.nn.Linear(n_dims_input,20),
-                    non_linearity(),
-                    torch.nn.Linear(20,50),
-                    non_linearity(),
-                    torch.nn.Linear(50, 5),
-                    non_linearity(),
-                    torch.nn.Linear(5, 10),
-                    non_linearity(),
-                    torch.nn.Dropout(p=dropout_p),
-                    torch.nn.Linear(10,1)
-                )
+#     #gridsearched
+#     #non_linearity = torch.nn.Tanh
 
-#     non_linearity = torch.nn.Tanh
 #     return torch.nn.Sequential(
-#                     torch.nn.Linear(n_dims_input,10),
+#                     torch.nn.Linear(n_dims_input,20),
 #                     non_linearity(),
-#                     torch.nn.Linear(10,10),
+#                     torch.nn.Linear(20,50),
 #                     non_linearity(),
-#                     torch.nn.Linear(10, 50),
+#                     torch.nn.Linear(50, 5),
+#                     non_linearity(),
+#                     torch.nn.Linear(5, 10),
 #                     non_linearity(),
 #                     torch.nn.Dropout(p=dropout_p),
-
-#                     torch.nn.Linear(50, 10),
-#                     non_linearity(),
 #                     torch.nn.Linear(10,1)
 #                 )
 
+    #non_linearity = torch.nn.Tanh
+    return torch.nn.Sequential(
+                    torch.nn.Linear(n_dims_input,100),
+                    non_linearity(),
+                    torch.nn.Dropout(p=dropout_p),
+
+                    torch.nn.Linear(100,100),
+                    #non_linearity(),
+                    #torch.nn.Linear(100, 100),
+                    non_linearity(),
+                    torch.nn.Linear(100, 10),
+                    non_linearity(),
+
+
+                    torch.nn.Linear(10,1)
+                )
+
 def get_kaggle_model(n_dims_input, non_linearity,dropout_p):
+    """original was 500,500,15; Tanh"""
     
     #original
 #     torch.nn.Sequential(
@@ -65,7 +71,7 @@ def get_kaggle_model(n_dims_input, non_linearity,dropout_p):
 #                     torch.nn.Dropout(p=self.dropout_p),
 #                     torch.nn.Linear(15,1)
 #                 )
-    non_linearity = torch.nn.Tanh
+    #non_linearity = torch.nn.Tanh
     return torch.nn.Sequential(
                     torch.nn.Linear(n_dims_input,500),
                     non_linearity(),

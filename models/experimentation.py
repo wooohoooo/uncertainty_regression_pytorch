@@ -28,13 +28,14 @@ l2 = 1
 n_std = 4
 
 class Experimentator(object):
-    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None):
+    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU):
         self.toy = toy
         self.generator_function = generator_function or False
         self.num_experiments = num_experiments
         self.num_epochs = num_epochs
         self.model_type = model_type
         self.seed = seed or 42
+        self.non_linearity = non_linearity
         
         
         
@@ -87,9 +88,10 @@ class Experimentator(object):
             index_stop = model_string.find("'>") 
             self.model_name = model_string[index_start:index_stop]
 
-        else: self.model_name = 'VanillaEnsemble'
+        else: self.model_name = 'VanillaEnsemble' 
 
-        
+        self.non_linearity_name = f'{self.non_linearity}'[36:-2]
+
 
     def run_experiment(self):
         for i in range(self.num_experiments):
@@ -97,7 +99,7 @@ class Experimentator(object):
             np.random.seed(self.seed + i*100000)
             torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}/')
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity}/',non_linearity=self.non_linearity)
             except Exception as e:
                 #print(e)
                 try:
@@ -153,7 +155,14 @@ class ExperimentAnalyzer(object):
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
-        self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+        try:
+            self.non_linearity_name = self.experiment.non_linearity_name
+
+            self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}_{self.non_linearity_name}\\'
+        except:
+            #for legacy experiments
+            self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+
         try:
             os.makedirs(os.getcwd() + '\\' + self.fig_path )
         except OSError:
@@ -177,8 +186,8 @@ class ExperimentAnalyzer(object):
         best_fig = plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
         worst_fig = plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
 
-        best_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[best_model_index]}')
-        worst_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[worst_model_index]}')
+        #best_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[best_model_index]}')
+        #worst_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[worst_model_index]}')
         #best_fig.figsize([16,9]) 
         #worst_fig.figsize([16,9]) 
         
