@@ -17,7 +17,7 @@ torch.backends.cudnn.benchmark = False
 from helpers import showcase_code
 
 import matplotlib.pyplot as plt
-plt.rcParams["figure.figsize"] = (160,80)
+plt.rcParams["figure.figsize"] = (16,8)
 
 import os
 import seaborn as sns
@@ -28,7 +28,7 @@ l2 = 1
 n_std = 4
 
 class Experimentator(object):
-    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.05):
+    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005):
         self.toy = toy
         self.generator_function = generator_function or False
         self.num_experiments = num_experiments
@@ -104,10 +104,10 @@ class Experimentator(object):
             except Exception as e:
                 print(e)
                 try:
-                    model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0],decay=self.decay)
+                    model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0],decay=self.decay,non_linearity=self.non_linearity)
                 except Exception as e:
                     print(e)
-                    model = self.model_type(self.toy,self.output_dims,decay=self.decay)
+                    model = self.model_type(self.toy,self.output_dims,decay=self.decay,non_linearity=self.non_linearity)
 
             #print(f'\n\n\n\n\n\n\n\n{model.non_linearity}\n\n\n\\n\n\n')
             losslist = []
@@ -182,11 +182,11 @@ class ExperimentAnalyzer(object):
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
         
         metric_array = np.array(self.stats_dict['analysis'][metric])[self.outlier_keep_index]
-        print(len(metric_array))
+        #print(len(metric_array))
         best_model_index = (np.abs(metric_array-0)).argmin()
         worst_model_index =(np.abs(metric_array-0)).argmax()
         
-        print(best_model_index,worst_model_index)
+        #print(best_model_index,worst_model_index)
         
         best_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][best_model_index]
         worst_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][worst_model_index]
@@ -297,7 +297,7 @@ class ExperimentAnalyzer(object):
             self.prior_errors = np.array(self.stats_dict['analysis']['prior_test_errors'])[self.outlier_keep_index]
         except:
             a = 0
-        print(np.mean(self.errors), np.std(self.errors))
+        #print(np.mean(self.errors), np.std(self.errors))
 
         #cobeau
         self.cobeau = np.array(self.stats_dict['analysis']['cobeau'])[self.outlier_keep_index]
@@ -306,7 +306,7 @@ class ExperimentAnalyzer(object):
         except:
             a = 0
 
-        print(np.mean(self.cobeau), np.std(self.cobeau))
+        #print(np.mean(self.cobeau), np.std(self.cobeau))
 
         #p - values cobeau
         self.p_val = np.array(self.stats_dict['analysis']['cobeau_p'])[self.outlier_keep_index]
@@ -315,7 +315,7 @@ class ExperimentAnalyzer(object):
         except:
             a = 0
 
-        print(np.mean(self.p_val), np.std(self.p_val))
+        #print(np.mean(self.p_val), np.std(self.p_val))
 
     
         #nlpd
@@ -324,7 +324,7 @@ class ExperimentAnalyzer(object):
             self.prior_nlpd = np.array(self.stats_dict['analysis']['prior_nlpd'])[self.outlier_keep_index]
         except:
             a = 0
-        print(np.mean(self.nlpd), np.std(self.nlpd))
+        #print(np.mean(self.nlpd), np.std(self.nlpd))
         
         if return_as_dataframe:
             return pd.DataFrame.from_dict({'nlpd':self.nlpd,'errors':self.errors,'cobeau':self.cobeau,'cobeau_p_vals':self.p_val})

@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 class SaverModel(SimpleModel):
-    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.05, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytest/',n_models_to_keep=20):
+    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytest/',n_models_to_keep=20):
         super(SaverModel, self).__init__(toy ,n_dims_input,p=0.00, decay=decay, non_linearity=non_linearity)
         self.num_epochs_per_save = num_epochs_per_save
         self.current_epoch = 0
@@ -101,7 +101,7 @@ class SaverModel(SimpleModel):
         
         
 class BobstrapEnsemble(SaverModel):
-    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytestbob/',n_models_to_keep=10,bootstrap_p_positive=0.7):
+    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytestbob/',n_models_to_keep=10,bootstrap_p_positive=0.7):
         super(BobstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=decay, non_linearity=non_linearity, num_epochs_per_save=num_epochs_per_save,save_path = save_path,n_models_to_keep=n_models_to_keep)
         
         
@@ -173,11 +173,14 @@ class SnapshotHybridModel(SaverModel):
         return y_mean, y_std
     
 class DropoutModel(SimpleModel):
+    def __init__(self,toy ,n_dims_input,p=0.05, decay=0.005, non_linearity=torch.nn.LeakyReLU):
+        super(DropoutModel, self).__init__(toy ,n_dims_input,p=p, decay=decay, non_linearity=non_linearity)
 
     def ensemble_uncertainity_estimate(self,X, iters, l2=0.005, range_fn=trange, raw=False,all_predictions=False):
         outputs = np.hstack([self(X).data.numpy() for i in range_fn(iters)])
         y_mean = outputs.mean(axis=1)
         y_std = outputs.std(axis=1)
+        print(y_mean, y_std)
 
 
         if all_predictions:

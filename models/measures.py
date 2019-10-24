@@ -12,7 +12,7 @@ def compute_cobeau(y,y_pred,y_std):
 
 
 def compute_nlpd(y,y_pred,y_std):
-    nlpd = 1/2 * ((y-y_pred)**2 / y_std) + np.log(y_std)
+    nlpd = 1/2 * ((y-y_pred)**2 / y_std +0.0001) + safe_ln(y_std)
     l = np.mean(nlpd)
     return l
     #return -1/2 *np.mean( safe_ln(y_std) + ((y_pred - y)**2/(y_std+0.0001)))

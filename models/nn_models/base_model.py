@@ -89,7 +89,7 @@ def get_kaggle_model(n_dims_input, non_linearity,dropout_p):
 
 class SimpleModel(torch.nn.Module):
     """base NN model used in ensembles"""
-    def __init__(self,toy,n_dims_input,p=0.05, decay=0.05, non_linearity=torch.nn.LeakyReLU,model_provided = False):
+    def __init__(self,toy,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU,model_provided = False):
         super(SimpleModel, self).__init__()
         self.dropout_p = p
         self.decay = decay
