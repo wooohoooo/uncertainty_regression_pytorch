@@ -17,7 +17,7 @@ torch.backends.cudnn.benchmark = False
 from helpers import showcase_code
 
 import matplotlib.pyplot as plt
-plt.rcParams["figure.figsize"] = (16,8)
+plt.rcParams["figure.figsize"] = (160,80)
 
 import os
 import seaborn as sns
@@ -99,16 +99,16 @@ class Experimentator(object):
             np.random.seed(self.seed + i*100000)
             torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity}/',non_linearity=self.non_linearity)
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity)
             except Exception as e:
-                #print(e)
+                print(e)
                 try:
                     model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0])
                 except Exception as e:
-                    #print(e)
+                    print(e)
                     model = self.model_type(self.toy,self.output_dims)
 
-
+            print(f'\n\n\n\n\n\n\n\n{model.non_linearity}\n\n\n\\n\n\n')
             losslist = []
             try:
                 mean, std, outcomes = model.uncertainty_function(self.X_test, iters, l2=l2,all_predictions=True)
@@ -158,10 +158,10 @@ class ExperimentAnalyzer(object):
         try:
             self.non_linearity_name = self.experiment.non_linearity_name
 
-            self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}_{self.non_linearity_name}\\'
+            self.fig_path = f'figures\\{self.non_linearity_name}\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
         except:
             #for legacy experiments
-            self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+            self.fig_path = f'figures\\legacy\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
 
         try:
             os.makedirs(os.getcwd() + '\\' + self.fig_path )
@@ -169,6 +169,13 @@ class ExperimentAnalyzer(object):
             print ("Creation of the directory %s failed" % self.fig_path)
         else:
             print ("Successfully created the directory %s " % self.fig_path)    
+            
+            
+        print(f'{self.experiment.non_linearity}, {self.toy}, {self.model_name}')
+        try:
+            print(f'{self.experimenter.model.save_path}')
+        except:
+                  a = 0
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
@@ -192,14 +199,12 @@ class ExperimentAnalyzer(object):
         #worst_fig.figsize([16,9]) 
         
         
-        best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit',bbox_inches='tight', pad_inches=0)
-        worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit',bbox_inches='tight', pad_inches=0)
+        best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit.pdf',bbox_inches='tight', pad_inches=0,format='pdf')
+        worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit.pdf',bbox_inches='tight', pad_inches=0,format='pdf')
         plt.close()
         plt.close()
         plt.clf()
 
-        #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
-        #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
         
         
         
@@ -227,8 +232,8 @@ class ExperimentAnalyzer(object):
             #plt.errorbar(X_test, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
         plt.legend()
         
-        plt.savefig(self.fig_path + 'outcome', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'outcome.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
         plt.close()
@@ -364,8 +369,8 @@ class ExperimentAnalyzer(object):
             plt.axvline(self.stupid_function_error, 0,17,c='red',label=f'dumb model error',linestyle='--')
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path+ 'errors', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path+ 'errors.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
 
@@ -387,8 +392,8 @@ class ExperimentAnalyzer(object):
 
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'errors.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
             plt.close()
@@ -408,8 +413,8 @@ class ExperimentAnalyzer(object):
             plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'nlpd.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
     
@@ -424,8 +429,8 @@ class ExperimentAnalyzer(object):
                 a = 0
             plt.legend()
 
-            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'nlpd.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
             plt.close()
@@ -442,8 +447,8 @@ class ExperimentAnalyzer(object):
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
         #plt.show()
-        plt.savefig(self.fig_path + 'cobeau', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'cobeau.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
     
@@ -455,8 +460,8 @@ class ExperimentAnalyzer(object):
         sns.distplot(runtime_metrics,label=f'distribution of runtimes',norm_hist =False)
         plt.legend()
         #plt.show()
-        plt.savefig(self.fig_path + 'runtimes', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'runtimes.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
         plt.close()

@@ -6,6 +6,13 @@ import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 
+    
+def normalize(df,minmax=False):
+        if minmax:
+            return (df-df.min())/(df.max()-df.min())
+        
+        return (df-df.mean())/df.std()
+
 def load_data(scale_y = True):
     """loads kaggle housing price dataset
     removes non-numerical values
@@ -87,14 +94,20 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
     
     # the original function values
     y_long = generator_function(X_long)
+    y_long = normalize(y_long)
     
     # it all comes together: generated function plus noise
     y = generator_function(X) + noise
+    y = normalize(y)
+
+    
     X = np.expand_dims(X,1)
     X_long = np.expand_dims(X_long,1)
     
     y = np.expand_dims(y,1)
     y_long = np.expand_dims(y_long,1)
+    
+    
 
     return X, y, X_long, y_long
 
