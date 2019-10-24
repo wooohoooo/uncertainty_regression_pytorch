@@ -20,7 +20,7 @@ class ShuffleEnsemble(VanillaEnsemble):
     
 class BootstrapEnsemble(VanillaEnsemble):
     
-    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, n_models=4, model_list=None,u_iters=100, l2=1, n_std=4, title="",dataset_lenght=None,bootstrap_p_positive=0.7):
+    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.05, non_linearity=torch.nn.LeakyReLU, n_models=4, model_list=None,u_iters=100, l2=1, n_std=4, title="",dataset_lenght=None,bootstrap_p_positive=0.7):
         super(BootstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=decay, non_linearity=non_linearity, n_models=n_models, model_list=None,u_iters=100, l2=1, n_std=4, title="",dataset_lenght=None)
         
         self.dataset_lenght = dataset_lenght

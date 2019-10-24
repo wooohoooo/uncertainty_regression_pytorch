@@ -94,6 +94,7 @@ class SimpleModel(torch.nn.Module):
         self.dropout_p = p
         self.decay = decay
         self.criterion = torch.nn.MSELoss()
+        self.non_linearity = non_linearity
         if not model_provided:
             if toy:
                 self.f = get_toy_model(n_dims_input, non_linearity,self.dropout_p)
