@@ -23,7 +23,7 @@ import os
 import seaborn as sns
 import time
 import pandas as pd
-iters = 100
+iters = 10
 l2 = 1
 n_std = 4
 

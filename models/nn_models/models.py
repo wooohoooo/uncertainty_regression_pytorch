@@ -94,6 +94,7 @@ class SaverModel(SimpleModel):
         #tau = l2 * (1-self.dropout_p) / (2*N*self.decay)
         #y_variance += (1/tau)
         y_std = np.sqrt(y_variance)# + (1/tau)
+        y_std = outputs.std(axis=1)
         if all_predictions:
             return y_mean, y_std, outputs
         return y_mean, y_std
@@ -167,7 +168,7 @@ class SnapshotHybridModel(SaverModel):
         y_mean = outputs[:,-1]#self.load_saved_model(self.model_paths[-1])(X).data.numpy()        
         y_variance = outputs.var(axis=1)
         
-        y_std = np.sqrt(y_variance)# + (1/tau)
+        y_std = outputs.std(axis=1)#np.sqrt(y_variance)# + (1/tau)
         if all_predictions:
             return y_mean, y_std, outputs
         return y_mean, y_std
@@ -180,7 +181,20 @@ class DropoutModel(SimpleModel):
         outputs = np.hstack([self(X).data.numpy() for i in range_fn(iters)])
         y_mean = outputs.mean(axis=1)
         y_std = outputs.std(axis=1)
-        print(y_mean, y_std)
+#         N = len(y_std)
+#         print(y_mean, y_std)
+        
+        
+        
+        
+        
+        
+#         #from gal
+#         predictive_variance = outputs.var(axis=1)
+#         l=1
+#         tau = l**2 * (1 - self.dropout_p) / (2 * N * self.decay)
+#         predictive_variance += tau**-1
+#         y_std = predictive_variance
 
 
         if all_predictions:

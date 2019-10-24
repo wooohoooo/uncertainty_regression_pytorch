@@ -5,7 +5,7 @@ import seaborn as sns
 
 
 #ToDo: Propagate them through the methods
-iters = 100
+iters = 10
 l2 = 1
 n_std = 4
 from pygments import highlight

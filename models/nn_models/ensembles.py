@@ -34,7 +34,7 @@ class BootstrapEnsemble(VanillaEnsemble):
             X_bootstrapped, y_bootstrapped = X_abs[indices], y_abs[indices]
 
             
-            #shuffled_X, shuffled_y = self.shuffle(X_bootstrapped, y_bootstrapped)
+            shuffled_X, shuffled_y = self.shuffle(X_bootstrapped, y_bootstrapped)
             shuffled_X, shuffled_y = X_bootstrapped, y_bootstrapped
 
             

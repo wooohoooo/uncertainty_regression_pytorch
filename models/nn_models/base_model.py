@@ -41,11 +41,12 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
     return torch.nn.Sequential(
                     torch.nn.Linear(n_dims_input,100),
                     non_linearity(),
-                    torch.nn.Dropout(p=dropout_p),
 
                     torch.nn.Linear(100,100),
 
                     non_linearity(),
+                    torch.nn.Dropout(p=dropout_p),
+
                     torch.nn.Linear(100, 10),
                     non_linearity(),
 
