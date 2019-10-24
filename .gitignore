@@ -131,3 +131,4 @@ models/experiments
 *.pkl
 models/dummytestbob
 *.png
+models/figures/

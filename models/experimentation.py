@@ -23,18 +23,20 @@ import os
 import seaborn as sns
 import time
 import pandas as pd
-iters = 100
+iters = 10
 l2 = 1
 n_std = 4
 
 class Experimentator(object):
-    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None):
+    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005):
         self.toy = toy
         self.generator_function = generator_function or False
         self.num_experiments = num_experiments
         self.num_epochs = num_epochs
         self.model_type = model_type
         self.seed = seed or 42
+        self.non_linearity = non_linearity
+        self.decay = decay
         
         
         
@@ -75,8 +77,8 @@ class Experimentator(object):
                      }
         
         model_string = f'{model_type}'
-        print(model_string)
-        print('.models.' in model_string)
+        #print(model_string)
+        #print('.models.' in model_string)
         if '.models.' in model_string:
             index_start = model_string.find('.models.')+len('.models.')
             index_stop = model_string.find("'>")
@@ -87,9 +89,10 @@ class Experimentator(object):
             index_stop = model_string.find("'>") 
             self.model_name = model_string[index_start:index_stop]
 
-        else: self.model_name = 'VanillaEnsemble'
+        else: self.model_name = 'VanillaEnsemble' 
 
-        
+        self.non_linearity_name = f'{self.non_linearity}'[36:-2]
+
 
     def run_experiment(self):
         for i in range(self.num_experiments):
@@ -97,16 +100,16 @@ class Experimentator(object):
             np.random.seed(self.seed + i*100000)
             torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}/')
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay)
             except Exception as e:
-                #print(e)
+                print(e)
                 try:
-                    model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0])
+                    model = self.model_type(self.toy,self.output_dims,dataset_lenght=self.X_train.shape[0],decay=self.decay,non_linearity=self.non_linearity)
                 except Exception as e:
-                    #print(e)
-                    model = self.model_type(self.toy,self.output_dims)
+                    print(e)
+                    model = self.model_type(self.toy,self.output_dims,decay=self.decay,non_linearity=self.non_linearity)
 
-
+            #print(f'\n\n\n\n\n\n\n\n{model.non_linearity}\n\n\n\\n\n\n')
             losslist = []
             try:
                 mean, std, outcomes = model.uncertainty_function(self.X_test, iters, l2=l2,all_predictions=True)
@@ -153,23 +156,37 @@ class ExperimentAnalyzer(object):
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
-        self.fig_path = f'figures\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+        try:
+            self.non_linearity_name = self.experiment.non_linearity_name
+
+            self.fig_path = f'figures\\{self.non_linearity_name}\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+        except:
+            #for legacy experiments
+            self.fig_path = f'figures\\legacy\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+
         try:
             os.makedirs(os.getcwd() + '\\' + self.fig_path )
         except OSError:
             print ("Creation of the directory %s failed" % self.fig_path)
         else:
             print ("Successfully created the directory %s " % self.fig_path)    
+            
+            
+        print(f'{self.experiment.non_linearity}, {self.toy}, {self.model_name}')
+        try:
+            print(f'{self.experimenter.model.save_path}')
+        except:
+                  a = 0
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
         
         metric_array = np.array(self.stats_dict['analysis'][metric])[self.outlier_keep_index]
-        print(len(metric_array))
+        #print(len(metric_array))
         best_model_index = (np.abs(metric_array-0)).argmin()
         worst_model_index =(np.abs(metric_array-0)).argmax()
         
-        print(best_model_index,worst_model_index)
+        #print(best_model_index,worst_model_index)
         
         best_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][best_model_index]
         worst_model = np.array(self.stats_dict['models'])[self.outlier_keep_index][worst_model_index]
@@ -177,20 +194,18 @@ class ExperimentAnalyzer(object):
         best_fig = plot_uncertainty(best_model,self.X_test,self.y_test,self.toy,all_predictions=True)
         worst_fig = plot_uncertainty(worst_model,self.X_test,self.y_test,self.toy,all_predictions=True)
 
-        best_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[best_model_index]}')
-        worst_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[worst_model_index]}')
+        #best_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[best_model_index]}')
+        #worst_fig.suptitle(f'{self.model_name} with {metric} closest to 0: {metric_array[worst_model_index]}')
         #best_fig.figsize([16,9]) 
         #worst_fig.figsize([16,9]) 
         
         
-        best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit',bbox_inches='tight', pad_inches=0)
-        worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit',bbox_inches='tight', pad_inches=0)
+        best_fig.savefig(self.fig_path +f'_{metric}_sample_models_min_fit.pdf',bbox_inches='tight', pad_inches=0,format='pdf')
+        worst_fig.savefig(self.fig_path +f'_{metric}_sample_models_max_fit.pdf',bbox_inches='tight', pad_inches=0,format='pdf')
         plt.close()
         plt.close()
         plt.clf()
 
-        #plot_uncertainty(self.best_model,X_test,y_test,toy,all_predictions=True)
-        #plot_uncertainty(self.worst_model,X_test,y_test,toy,all_predictions=True)
         
         
         
@@ -218,8 +233,8 @@ class ExperimentAnalyzer(object):
             #plt.errorbar(X_test, y_mean[index] , yerr=y_std[index], label='unctertainty',color="purple",alpha=0.1,marker="_",uplims=True, lolims=True,fmt='none')
         plt.legend()
         
-        plt.savefig(self.fig_path + 'outcome', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'outcome.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
         plt.close()
@@ -282,7 +297,7 @@ class ExperimentAnalyzer(object):
             self.prior_errors = np.array(self.stats_dict['analysis']['prior_test_errors'])[self.outlier_keep_index]
         except:
             a = 0
-        print(np.mean(self.errors), np.std(self.errors))
+        #print(np.mean(self.errors), np.std(self.errors))
 
         #cobeau
         self.cobeau = np.array(self.stats_dict['analysis']['cobeau'])[self.outlier_keep_index]
@@ -291,7 +306,7 @@ class ExperimentAnalyzer(object):
         except:
             a = 0
 
-        print(np.mean(self.cobeau), np.std(self.cobeau))
+        #print(np.mean(self.cobeau), np.std(self.cobeau))
 
         #p - values cobeau
         self.p_val = np.array(self.stats_dict['analysis']['cobeau_p'])[self.outlier_keep_index]
@@ -300,7 +315,7 @@ class ExperimentAnalyzer(object):
         except:
             a = 0
 
-        print(np.mean(self.p_val), np.std(self.p_val))
+        #print(np.mean(self.p_val), np.std(self.p_val))
 
     
         #nlpd
@@ -309,7 +324,7 @@ class ExperimentAnalyzer(object):
             self.prior_nlpd = np.array(self.stats_dict['analysis']['prior_nlpd'])[self.outlier_keep_index]
         except:
             a = 0
-        print(np.mean(self.nlpd), np.std(self.nlpd))
+        #print(np.mean(self.nlpd), np.std(self.nlpd))
         
         if return_as_dataframe:
             return pd.DataFrame.from_dict({'nlpd':self.nlpd,'errors':self.errors,'cobeau':self.cobeau,'cobeau_p_vals':self.p_val})
@@ -355,8 +370,8 @@ class ExperimentAnalyzer(object):
             plt.axvline(self.stupid_function_error, 0,17,c='red',label=f'dumb model error',linestyle='--')
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path+ 'errors', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path+ 'errors.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
 
@@ -378,8 +393,8 @@ class ExperimentAnalyzer(object):
 
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path + 'errors', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'errors.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
             plt.close()
@@ -399,8 +414,8 @@ class ExperimentAnalyzer(object):
             plt.axvline(np.mean(self.errors),0,17,label='average errors of the model')
             plt.legend()
             #plt.show()
-            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'nlpd.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
     
@@ -415,8 +430,8 @@ class ExperimentAnalyzer(object):
                 a = 0
             plt.legend()
 
-            plt.savefig(self.fig_path + 'nlpd', dpi=None, facecolor='w', edgecolor='w',
-            orientation='portrait', papertype=None, format=None,
+            plt.savefig(self.fig_path + 'nlpd.pdf', dpi=None, facecolor='w', edgecolor='w',
+            orientation='portrait', papertype=None, format='pdf',
             transparent=False, bbox_inches=None, pad_inches=0.1,
             frameon=None, metadata=None)
             plt.close()
@@ -433,8 +448,8 @@ class ExperimentAnalyzer(object):
         #plt.axvline(self.stupid_function_nlpd, 0,17,c='red',label=f'dumb model error')
         plt.legend()
         #plt.show()
-        plt.savefig(self.fig_path + 'cobeau', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'cobeau.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
     
@@ -446,8 +461,8 @@ class ExperimentAnalyzer(object):
         sns.distplot(runtime_metrics,label=f'distribution of runtimes',norm_hist =False)
         plt.legend()
         #plt.show()
-        plt.savefig(self.fig_path + 'runtimes', dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
+        plt.savefig(self.fig_path + 'runtimes.pdf', dpi=None, facecolor='w', edgecolor='w',
+        orientation='portrait', papertype=None, format='pdf',
         transparent=False, bbox_inches=None, pad_inches=0.1,
         frameon=None, metadata=None)
         plt.close()

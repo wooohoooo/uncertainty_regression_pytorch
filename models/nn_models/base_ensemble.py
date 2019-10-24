@@ -4,7 +4,7 @@ from nn_models.base_model import SimpleModel
 from tqdm import tqdm, trange
 
 class VanillaEnsemble(object):
-    def __init__(self,toy,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, n_models=10, model_list=None,u_iters=100, l2=1, n_std=4, title="",dataset_lenght=None):
+    def __init__(self,toy,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU, n_models=10, model_list=None,u_iters=100, l2=1, n_std=4, title="",dataset_lenght=None):
 
         self.models = [SimpleModel(toy,n_dims_input,p,decay,non_linearity) for model in range(n_models)]
         self.optimizers = [torch.optim.Adam(

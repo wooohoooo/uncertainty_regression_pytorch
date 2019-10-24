@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 class SaverModel(SimpleModel):
-    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytest/',n_models_to_keep=20):
-        super(SaverModel, self).__init__(toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU)
+    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytest/',n_models_to_keep=20):
+        super(SaverModel, self).__init__(toy ,n_dims_input,p=0.00, decay=decay, non_linearity=non_linearity)
         self.num_epochs_per_save = num_epochs_per_save
         self.current_epoch = 0
         
@@ -94,6 +94,7 @@ class SaverModel(SimpleModel):
         #tau = l2 * (1-self.dropout_p) / (2*N*self.decay)
         #y_variance += (1/tau)
         y_std = np.sqrt(y_variance)# + (1/tau)
+        y_std = outputs.std(axis=1)
         if all_predictions:
             return y_mean, y_std, outputs
         return y_mean, y_std
@@ -101,8 +102,8 @@ class SaverModel(SimpleModel):
         
         
 class BobstrapEnsemble(SaverModel):
-    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytestbob/',n_models_to_keep=10,bootstrap_p_positive=0.7):
-        super(BobstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=0.001, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=num_epochs_per_save,save_path = save_path,n_models_to_keep=n_models_to_keep)
+    def __init__(self,toy ,n_dims_input,p=0.00, decay=0.005, non_linearity=torch.nn.LeakyReLU, num_epochs_per_save=100,save_path = 'dummytestbob/',n_models_to_keep=10,bootstrap_p_positive=0.7):
+        super(BobstrapEnsemble, self).__init__(toy ,n_dims_input,p=0.00, decay=decay, non_linearity=non_linearity, num_epochs_per_save=num_epochs_per_save,save_path = save_path,n_models_to_keep=n_models_to_keep)
         
         
         self.current_dataset_indices = None
@@ -167,17 +168,33 @@ class SnapshotHybridModel(SaverModel):
         y_mean = outputs[:,-1]#self.load_saved_model(self.model_paths[-1])(X).data.numpy()        
         y_variance = outputs.var(axis=1)
         
-        y_std = np.sqrt(y_variance)# + (1/tau)
+        y_std = outputs.std(axis=1)#np.sqrt(y_variance)# + (1/tau)
         if all_predictions:
             return y_mean, y_std, outputs
         return y_mean, y_std
     
 class DropoutModel(SimpleModel):
+    def __init__(self,toy ,n_dims_input,p=0.05, decay=0.005, non_linearity=torch.nn.LeakyReLU):
+        super(DropoutModel, self).__init__(toy ,n_dims_input,p=p, decay=decay, non_linearity=non_linearity)
 
     def ensemble_uncertainity_estimate(self,X, iters, l2=0.005, range_fn=trange, raw=False,all_predictions=False):
         outputs = np.hstack([self(X).data.numpy() for i in range_fn(iters)])
         y_mean = outputs.mean(axis=1)
         y_std = outputs.std(axis=1)
+#         N = len(y_std)
+#         print(y_mean, y_std)
+        
+        
+        
+        
+        
+        
+#         #from gal
+#         predictive_variance = outputs.var(axis=1)
+#         l=1
+#         tau = l**2 * (1 - self.dropout_p) / (2 * N * self.decay)
+#         predictive_variance += tau**-1
+#         y_std = predictive_variance
 
 
         if all_predictions:
