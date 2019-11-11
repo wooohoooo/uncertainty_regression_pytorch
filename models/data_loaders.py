@@ -146,3 +146,37 @@ def get_X_y(toy,seed=42):
     
     output_dims = X_train.shape[1]
     return X_train, X_test, y_train, y_test, N, output_dims
+
+
+def generate_y_x3(X):
+    return X**3
+
+def get_X_y_small_toy(seed,datalen=20):
+    """returns numpy arrays X and y that can be used as basis for regression problem"""
+    
+    
+    
+    np.random.seed(seed)
+    # define data space
+    X_train = np.linspace(-4,4,datalen)
+    
+    X_test = np.insert(X_train,0,-6)
+    X_test = np.append(X_test,6)
+    
+    noise = np.random.randn(len(X_test)) * 3**2
+    
+    y_original = generate_y_x3(X_test)
+    y_test = y_original + noise
+    y_train = y_test[1:-1]
+    plt.plot(X_test,y_original)
+    plt.plot(X_test,y_test)
+    plt.plot(X_train,y_train)
+    
+    X_train = np.expand_dims(X_train,1)
+    X_test = np.expand_dims(X_test,1)
+    y_train = np.expand_dims(y_train,1)
+    y_test = np.expand_dims(y_test,1)
+    output_dims = X_train.shape[1]
+
+    return X_train, X_test, y_train, y_test, datalen, output_dims
+

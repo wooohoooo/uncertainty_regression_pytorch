@@ -28,7 +28,7 @@ l2 = 1
 n_std = 4
 
 class Experimentator(object):
-    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005):
+    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005,pre_set_data=True):
         self.toy = toy
         self.generator_function = generator_function or False
         self.num_experiments = num_experiments
@@ -37,7 +37,7 @@ class Experimentator(object):
         self.seed = seed or 42
         self.non_linearity = non_linearity
         self.decay = decay
-        
+        self.pre_set_data = pre_set_data
         
         
         np.random.seed(seed)
@@ -96,11 +96,15 @@ class Experimentator(object):
 
     def run_experiment(self):
         for i in range(self.num_experiments):
+            exp_seed = self.seed + i*100000
+            np.random.seed(exp_seed)
+            torch.manual_seed(exp_seed)
+            
+            
+            self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=exp_seed)
 
-            np.random.seed(self.seed + i*100000)
-            torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay)
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/pre_set_data_{self.pre_set_data}/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay)
             except Exception as e:
                 print(e)
                 try:

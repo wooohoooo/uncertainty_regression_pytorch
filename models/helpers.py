@@ -101,8 +101,9 @@ def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=
 
 
         
-    X_original = np.expand_dims(np.linspace(0,1,100),1)
-    
+    #X_original = np.expand_dims(np.linspace(0,1,100),1)
+    X_original = np.expand_dims(np.linspace(X.min(),round(X.max()),100),1)    
+
     
     if all_predictions:
         y_original_mean, y_original_std, outputs = model.uncertainty_function(X_original, iters, l2=l2,all_predictions=all_predictions)
