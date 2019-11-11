@@ -158,6 +158,7 @@ class ExperimentAnalyzer(object):
         self.stats_dict = experiment.stats_dict.copy()
         self.model_name = experiment.model_name
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
+        self.seed = self.experiment.seed
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
         try:
@@ -275,7 +276,11 @@ class ExperimentAnalyzer(object):
         
         
             
-        for mean,std in zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds'])):
+        for i,(mean,std) in enumerate(zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds']))):
+                exp_seed = self.seed + i*100000
+
+                self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=exp_seed)
+
                 self.stats_dict['analysis']['test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
                 self.stats_dict['analysis']['cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
                 self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
