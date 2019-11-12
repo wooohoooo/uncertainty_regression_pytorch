@@ -23,19 +23,20 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
     
 #     #gridsearched
 #     #non_linearity = torch.nn.Tanh
-
-#     return torch.nn.Sequential(
-#                     torch.nn.Linear(n_dims_input,20),
-#                     non_linearity(),
-#                     torch.nn.Linear(20,50),
-#                     non_linearity(),
-#                     torch.nn.Linear(50, 5),
-#                     non_linearity(),
-#                     torch.nn.Linear(5, 10),
-#                     non_linearity(),
-#                     torch.nn.Dropout(p=dropout_p),
-#                     torch.nn.Linear(10,1)
-#                 )
+    if non_linearity == torch.nn.ReLU:
+        return torch.nn.Sequential(
+                        torch.nn.Linear(n_dims_input,500),
+                        non_linearity(),
+                        torch.nn.Linear(500,300),
+                        non_linearity(),
+                        torch.nn.Linear(300, 200),
+                        non_linearity(),
+                        torch.nn.Linear(200, 10),
+                        non_linearity(),
+                        torch.nn.Dropout(p=dropout_p),
+                        torch.nn.Linear(10,1)
+                    )
+#[(500,300),(300,200),(200,10)]
 
     #non_linearity = torch.nn.Tanh
     return torch.nn.Sequential(
@@ -43,9 +44,9 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
                     non_linearity(),
 
                     torch.nn.Linear(100,100),
+                    torch.nn.Dropout(p=dropout_p),
 
                     non_linearity(),
-                    torch.nn.Dropout(p=dropout_p),
 
                     torch.nn.Linear(100, 10),
                     non_linearity(),

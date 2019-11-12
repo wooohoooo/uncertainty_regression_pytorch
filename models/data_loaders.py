@@ -57,10 +57,10 @@ def generate_y(X_):
         
         
     # define the frequencies of the sinoid
-    freq1 = 0.1
-    freq2 = 0.0375
+    freq1 = 20#0.1
+    freq2 = 7.5#0.0375
     
-    X_ = X_ * 200
+    #X_ = X_ * 200
     y1 = np.sin(X_ * freq1) 
     y2 = np.sin(X_ * freq2) 
     return y1 + y2
@@ -71,6 +71,8 @@ def generate_y_linear(X_):
 
 def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample = True, generator_function = generate_y) -> np.array:
     """returns numpy arrays X and y that can be used as basis for regression problem"""
+    
+
     
     padding_size = int(padding_frac * datalen)
     
@@ -89,6 +91,8 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
 
 
     # make some noise!
+    seed = 42424
+    np.random.seed(seed)
     noise = np.random.randn(len(X)) * noise_level
 
     
@@ -113,7 +117,7 @@ def generate_data(datalen=1000,noise_level=0.2,padding_frac=0.1, out_of_sample =
 
 
 
-def get_X_y(toy,seed=42):
+def get_X_y(toy,seed=42,out_of_sample = False,plot=False):
     """obtain X, y and N depending on <toy>
     either calls generate_data_
     or load_data
@@ -121,30 +125,46 @@ def get_X_y(toy,seed=42):
     if not toy:
         X,y = load_data()
         N = X.shape[0]
-        plt.plot(list(range(len(y))), y, ls="none", color="green", label="dataset unsorted",marker="_")
-        plt.plot(list(range(len(y))), np.sort(y), ls="none", color="purple", label="dataset sorted by y value for easy visualisation",marker="_")
-        plt.ylabel('house price (normalized)')
-        plt.xlabel('house identifier (not actual X)')
-        plt.legend()
+        if plot:
+            plt.plot(list(range(len(y))), y, ls="none", color="green", label="dataset unsorted",marker="_")
+            plt.plot(list(range(len(y))), np.sort(y), ls="none", color="purple", label="dataset sorted by y value for easy visualisation",marker="_")
+            plt.ylabel('house price (normalized)')
+            plt.xlabel('house identifier (not actual X)')
+            plt.legend()
 
 
         y = np.expand_dims(y,1)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
         output_dims = X_train.shape[1]
         return X_train, X_test, y_train, y_test, N, output_dims
-    N = 100
-    X,y,X_long,y_long = generate_data(N,0.3)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
-
-    plt.plot(X_train,y_train,'x',label='train set')
-    plt.plot(X_test,y_test,'x',label='test set')
-    plt.plot(X_long, y_long,label='generating function',c='r')
-    plt.title('the Dataset')
-    plt.xlabel('this is between 0 and 1')
-    plt.ylabel('this is a combination of two sioids and a bit of noise')
-    plt.legend()
     
+    
+    N = 100
+    X,y,X_long,y_long = generate_data(N,0.3,out_of_sample = False) # oos now below
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+    if plot:
+        plt.plot(X_train,y_train,'x',label='train set')
+        plt.plot(X_test,y_test,'x',label='test set')
+        plt.plot(X_long, y_long,label='generating function',c='r')
+        plt.title('the Dataset')
+        plt.xlabel('this is between 0 and 1')
+        plt.ylabel('this is a combination of two sioids and a bit of noise')
+        plt.legend()
+        
+    if out_of_sample:
+
+        X_test = np.insert(X_test,0,0)
+        X_test = np.append(X_test,1)
+        X_test = np.expand_dims(X_test,1)
+        y_test = np.insert(y_test,0,0)
+        y_test = np.append(y_test,1)
+        y_test = np.expand_dims(y_test,1)
+        
+        #print(X_test.shape)
+        #print(y_test.shape)
+        
     output_dims = X_train.shape[1]
+    #print(X_train.shape,X_test.shape)
     return X_train, X_test, y_train, y_test, N, output_dims
 
 
