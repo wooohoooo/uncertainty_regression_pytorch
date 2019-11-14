@@ -6,7 +6,17 @@ import torch
 
 def get_toy_model(n_dims_input, non_linearity,dropout_p):
     """original was 100,100,10; LeakyReLU"""
-    
+#     return torch.nn.Sequential(
+#                     torch.nn.Linear(n_dims_input,100),
+#                     non_linearity(),
+
+#                     torch.nn.Linear(100,100),
+#                     torch.nn.Dropout(p=dropout_p),
+
+#                     non_linearity(),
+
+#                     torch.nn.Linear(100,1)
+#                 )
     #original
 #     return torch.nn.Sequential(
 #                     torch.nn.Linear(n_dims_input,20),
@@ -111,6 +121,7 @@ class SimpleModel(torch.nn.Module):
             weight_decay=self.decay) 
         
     def forward(self, X):
+        #self.f = self.f.train()
         X = torch.autograd.Variable(torch.Tensor(X), requires_grad=False)
         return self.f(X)
 
@@ -118,6 +129,7 @@ class SimpleModel(torch.nn.Module):
     
     
     def fit_model(self, X_obs,y_obs):
+        #self.f = self.f.eval()
         y = torch.autograd.Variable(torch.Tensor(y_obs), requires_grad=False)
         y_pred = self(X_obs)
         self.optimizer.zero_grad()
