@@ -27,8 +27,12 @@ iters = 10
 l2 = 1
 n_std = 4
 
+
+def intersection(lst1, lst2): 
+    return list(set(lst1) & set(lst2)) 
+
 class Experimentator(object):
-    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005):
+    def __init__(self,num_experiments,num_epochs,model_type,toy,seed=None,generator_function=None, non_linearity=torch.nn.LeakyReLU,decay = 0.005,pre_set_data=True,out_of_sample=True):
         self.toy = toy
         self.generator_function = generator_function or False
         self.num_experiments = num_experiments
@@ -37,7 +41,8 @@ class Experimentator(object):
         self.seed = seed or 42
         self.non_linearity = non_linearity
         self.decay = decay
-        
+        self.pre_set_data = pre_set_data
+        self.out_of_sample = out_of_sample
         
         
         np.random.seed(seed)
@@ -46,7 +51,7 @@ class Experimentator(object):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         
-        self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=self.seed)
+        self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=self.seed,out_of_sample = self.out_of_sample)
     
         
 
@@ -96,11 +101,15 @@ class Experimentator(object):
 
     def run_experiment(self):
         for i in range(self.num_experiments):
+            exp_seed = self.seed + i*100000
+            np.random.seed(exp_seed)
+            torch.manual_seed(exp_seed)
+            
+            
+            self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=exp_seed,out_of_sample = self.out_of_sample)
 
-            np.random.seed(self.seed + i*100000)
-            torch.manual_seed(self.seed + i*100000)
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay)
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/pre_set_data_{self.pre_set_data}/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay,num_epochs_per_save = self.num_epochs/20)
             except Exception as e:
                 print(e)
                 try:
@@ -136,7 +145,8 @@ class Experimentator(object):
             #print(f'the training for {self.num_epochs} took {time_now-start} ')
 
             self.stats_dict['training']['losses'].append(losslist)
-            plt.plot(losslist)
+            #plt.figure()
+            #plt.plot(losslist)
 
             mean, std, outcomes = model.uncertainty_function(self.X_test, iters, l2=l2,all_predictions=True)
 
@@ -154,12 +164,18 @@ class ExperimentAnalyzer(object):
         self.stats_dict = experiment.stats_dict.copy()
         self.model_name = experiment.model_name
         self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims, self.toy = experiment.X_train, experiment.X_test, experiment.y_train, experiment.y_test, experiment.N, experiment.output_dims, experiment.toy
+        self.seed = self.experiment.seed
         #index of non-outliers to make choosing which experiments to keep easy
         self.outlier_keep_index = list(range(self.experiment.num_experiments))
+        self.out_of_sample = self.experiment.out_of_sample 
         try:
             self.non_linearity_name = self.experiment.non_linearity_name
-
+            
             self.fig_path = f'figures\\{self.non_linearity_name}\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
+            
+            if self.out_of_sample:
+                self.fig_path = f'figures\\{self.non_linearity_name}\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}_out_of_sample\\'
+
         except:
             #for legacy experiments
             self.fig_path = f'figures\\legacy\\{self.model_name}_toy_{self.toy}_{self.experiment.num_experiments}\\'
@@ -177,6 +193,12 @@ class ExperimentAnalyzer(object):
             print(f'{self.experimenter.model.save_path}')
         except:
                   a = 0
+                
+                #NOTE! This only works for non cudnn. gpu needs
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'
@@ -253,9 +275,14 @@ class ExperimentAnalyzer(object):
         
         
         outlier_indices = get_outliers(errors,threshold)
-        
-        self.outlier_keep_index =  outlier_indices[0]
-    
+        print(outlier_indices)
+        nlpd = np.array(self.stats_dict['analysis']['nlpd'])
+        nlpd_outliers = get_outliers(nlpd,threshold)
+        outlier_indices = np.intersect1d(nlpd_outliers, outlier_indices)
+        print(outlier_indices)
+
+        self.outlier_keep_index =  outlier_indices
+
     def _analyze(self):
         
         #purge previous outcomes
@@ -271,7 +298,11 @@ class ExperimentAnalyzer(object):
         
         
             
-        for mean,std in zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds'])):
+        for i,(mean,std) in enumerate(zip(np.array(self.stats_dict['post_training']['means']),  np.array(self.stats_dict['post_training']['stds']))):
+                exp_seed = self.seed + i*100000
+
+                self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=exp_seed,out_of_sample = self.out_of_sample)
+
                 self.stats_dict['analysis']['test_errors'].append(compute_error(mean.squeeze(),self.y_test.squeeze()))
                 self.stats_dict['analysis']['cobeau'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[0])  
                 self.stats_dict['analysis']['cobeau_p'].append(compute_cobeau(self.y_test.squeeze(),mean.squeeze(),std.squeeze())[1])  
@@ -351,7 +382,7 @@ class ExperimentAnalyzer(object):
         try:
             self._create_comparisson_values()
             
-            sns.distplot(self.errors,label=f'distribution of errors',norm_hist =False)
+            sns.distplot(self.errors[self.outlier_keep_index],label=f'distribution of errors',norm_hist =False)
             try:
                 plt.axvline(np.mean(self.prior_errors), 0,17,c='green',label=f'average prior error',linestyle='-.')
             except Exception as e:
@@ -399,7 +430,7 @@ class ExperimentAnalyzer(object):
             frameon=None, metadata=None)
             plt.close()
 
-            plt.figure()
+        plt.figure()
 
         try:
             sns.distplot(self.nlpd,label=f'distribution of nlpd',norm_hist =False)
