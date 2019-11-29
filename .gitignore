@@ -137,3 +137,8 @@ models/toy_complex_figs/
 models/toy_simple_figs/
 
 test/
+dummytest/
+dummytestbob/
+experiments/
+figures/
+old_experiments/
