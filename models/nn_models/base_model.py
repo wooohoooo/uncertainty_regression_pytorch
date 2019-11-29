@@ -21,13 +21,19 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
 #     return torch.nn.Sequential(
 #                     torch.nn.Linear(n_dims_input,20),
 #                     non_linearity(),
+#                             torch.nn.Dropout(p=dropout_p),
+
 #                     torch.nn.Linear(20,20),
 #                     non_linearity(),
+#                             torch.nn.Dropout(p=dropout_p),
+
 #                     torch.nn.Linear(20, 10),
 #                     non_linearity(),
+#                             torch.nn.Dropout(p=dropout_p),
+
 #                     torch.nn.Linear(10, 10),
 #                     non_linearity(),
-#                     torch.nn.Dropout(p=self.dropout_p),
+#                     torch.nn.Dropout(p=dropout_p),
 #                     torch.nn.Linear(10,1)
 #                 )
     
@@ -36,13 +42,22 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
     if non_linearity == torch.nn.ReLU:
         return torch.nn.Sequential(
                         torch.nn.Linear(n_dims_input,500),
+            
                         non_linearity(),
+                                torch.nn.Dropout(p=dropout_p),
+
                         torch.nn.Linear(500,300),
                         non_linearity(),
+                                torch.nn.Dropout(p=dropout_p),
+
                         torch.nn.Linear(300, 200),
                         non_linearity(),
+                                torch.nn.Dropout(p=dropout_p),
+
                         torch.nn.Linear(200, 10),
                         non_linearity(),
+                                torch.nn.Dropout(p=dropout_p),
+
                         torch.nn.Dropout(p=dropout_p),
                         torch.nn.Linear(10,1)
                     )
@@ -51,6 +66,8 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
     #non_linearity = torch.nn.Tanh
     return torch.nn.Sequential(
                     torch.nn.Linear(n_dims_input,100),
+                            torch.nn.Dropout(p=dropout_p),
+
                     non_linearity(),
 
                     torch.nn.Linear(100,100),
@@ -59,6 +76,8 @@ def get_toy_model(n_dims_input, non_linearity,dropout_p):
                     non_linearity(),
 
                     torch.nn.Linear(100, 10),
+                            torch.nn.Dropout(p=dropout_p),
+
                     non_linearity(),
 
 
@@ -86,8 +105,11 @@ def get_kaggle_model(n_dims_input, non_linearity,dropout_p):
     return torch.nn.Sequential(
                     torch.nn.Linear(n_dims_input,500),
                     non_linearity(),
+                            torch.nn.Dropout(p=dropout_p),
+
                     torch.nn.Linear(500,500),
-                    non_linearity(),
+                    non_linearity(),                    torch.nn.Dropout(p=dropout_p),
+
                     torch.nn.Linear(500, 15),
                     non_linearity(),
                     torch.nn.Dropout(p=dropout_p),

@@ -109,7 +109,7 @@ class Experimentator(object):
             self.X_train, self.X_test, self.y_train, self.y_test, self.N, self.output_dims  = get_X_y(self.toy,seed=exp_seed,out_of_sample = self.out_of_sample)
 
             try:
-                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/pre_set_data_{self.pre_set_data}/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay)
+                model = self.model_type(self.toy,self.output_dims,save_path=f'experiments/pre_set_data_{self.pre_set_data}/experiment_{i}_{self.model_name}_{self.toy}_{self.non_linearity_name}/',non_linearity=self.non_linearity,decay=self.decay,num_epochs_per_save = self.num_epochs/20)
             except Exception as e:
                 print(e)
                 try:
@@ -193,6 +193,12 @@ class ExperimentAnalyzer(object):
             print(f'{self.experimenter.model.save_path}')
         except:
                   a = 0
+                
+                #NOTE! This only works for non cudnn. gpu needs
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     def plot_models(self,metric='test_errors'):
         
         assert len(self.stats_dict['analysis'][metric]) == len(self.stats_dict['models']), 'number of models and metrics isnt the same'

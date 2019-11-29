@@ -89,7 +89,7 @@ def plot_uncertainty_kaggle(model,X,y,n_std=4,raw=False, sort=True,iters=100,fna
     
     return fig
     
-def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=100,generating_function = None, fname=None):
+def plot_uncertainty_toy(model,X,y,n_std=4,raw=False,all_predictions=True,iters=10,generating_function = None, fname=None):
 
 
     fig, ax = plt.subplots(1,1)
