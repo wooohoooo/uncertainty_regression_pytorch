@@ -155,10 +155,14 @@ class Experimentator(object):
             self.stats_dict['post_training']['means'].append(mean)
             self.stats_dict['post_training']['stds'].append(std)
             self.stats_dict['post_training']['outcomes'].append(outcomes)
-
-        print(model.f)
-        print(model.non_linearity)
-        print(model.decay)
+        try:
+            print(model.f)
+            print(model.non_linearity)
+            print(model.decay)
+        except:
+            print(model.models[0].f)
+            print(model.models[0].decay)
+            print(model.models[0].non_linearity)
     
 class ExperimentAnalyzer(object):
     def __init__(self,experiment: Experimentator):
