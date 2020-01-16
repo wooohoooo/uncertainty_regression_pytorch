@@ -142,3 +142,4 @@ dummytestbob/
 experiments/
 figures/
 old_experiments/
+*.pdf
